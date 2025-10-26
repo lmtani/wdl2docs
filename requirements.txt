@@ -1,0 +1,10 @@
+# WDL Documentation Generator Dependencies
+
+# Core dependencies
+click>=8.1.0
+coloredlogs>=15.0.1
+jinja2>=3.1.6
+miniwdl>=1.13.0
+
+# Optional: for better type checking
+typing-extensions>=4.0.0

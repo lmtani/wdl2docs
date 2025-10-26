@@ -1,0 +1,47 @@
+[project]
+name = "wdl2doc"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "click>=8.3.0",
+    "coloredlogs>=15.0.1",
+    "jinja2>=3.1.6",
+    "miniwdl>=1.13.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[project.scripts]
+wdl2doc = "src.cli.main:cli"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "deadcode>=2.4.1",
+    "mypy>=1.18.2",
+    "ruff>=0.14.2",
+    "autoflake>=2.3.1",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = "."
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = ["test_*", "should_*"]
+addopts = [
+    "--strict-markers",
+    "--tb=short",
+    # "--disable-warnings",
+    "-v",
+]

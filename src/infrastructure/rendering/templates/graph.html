@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ workflow_name }} - Workflow Graph</title>
+    <link rel="icon" type="image/png" href="{{ root_path }}static/logo.png">
+    <link rel="stylesheet" href="{{ root_path }}static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <script>
+        let panZoomInstance = null;
+        
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#a371f7',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#8b5cf6',
+                lineColor: '#58a6ff',
+                secondaryColor: '#1f6feb',
+                tertiaryColor: '#161b22',
+                background: '#0d1117',
+                mainBkg: '#161b22',
+                secondBkg: '#21262d',
+                border1: '#30363d',
+                border2: '#484f58',
+                note: '#58a6ff',
+                noteBorder: '#1f6feb',
+                noteBkg: '#161b22',
+                noteTextColor: '#fff',
+                fontSize: '16px',
+                fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 30,
+                nodeSpacing: 80,
+                rankSpacing: 100,
+                diagramPadding: 20,
+                useMaxWidth: false,
+                htmlLabels: true
+            }
+        });
+
+        // Initialize pan-zoom after mermaid renders
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const svg = document.querySelector('.mermaid svg');
+                if (svg) {
+                    // Adjust SVG to fill container
+                    svg.style.maxWidth = 'none';
+                    svg.style.height = 'auto';
+                    
+                    panZoomInstance = svgPanZoom(svg, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: true,
+                        fit: true,
+                        center: true,
+                        minZoom: 0.3,
+                        maxZoom: 10,
+                        zoomScaleSensitivity: 0.3,
+                        dblClickZoomEnabled: true,
+                        mouseWheelZoomEnabled: true,
+                        preventMouseEventsDefault: true,
+                        beforePan: function() { return true; },
+                        customEventsHandler: {
+                            haltEventListeners: ['touchstart', 'touchend', 'touchmove', 'touchleave', 'touchcancel'],
+                            init: function(options) {
+                                this.options = options;
+                            },
+                            destroy: function() {}
+                        }
+                    });
+                }
+            }, 100);
+        });
+
+        function resetZoom() {
+            if (panZoomInstance) {
+                panZoomInstance.resetZoom();
+                panZoomInstance.center();
+                panZoomInstance.fit();
+            }
+        }
+
+        function zoomIn() {
+            if (panZoomInstance) {
+                panZoomInstance.zoomIn();
+            }
+        }
+
+        function zoomOut() {
+            if (panZoomInstance) {
+                panZoomInstance.zoomOut();
+            }
+        }
+
+        function fitToScreen() {
+            if (panZoomInstance) {
+                panZoomInstance.fit();
+                panZoomInstance.center();
+            }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+        
+        header {
+            flex-shrink: 0;
+        }
+        
+        .graph-page {
+            padding: 10px 15px;
+            height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .graph-header {
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        
+        .graph-header h1 {
+            color: var(--text-primary);
+            margin-bottom: 3px;
+            font-size: 24px;
+        }
+        
+        .graph-header p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: 0;
+        }
+        
+        .graph-controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        
+        .graph-controls button {
+            background: linear-gradient(135deg, var(--accent-primary), #9d5cff);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .graph-controls button:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #b17aff);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(88, 166, 255, 0.3);
+        }
+        
+        .graph-controls button:active {
+            transform: translateY(0);
+        }
+        
+        .graph-controls button svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .graph-container {
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            border: 2px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            max-width: 100%;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        
+        #graph-svg-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .mermaid {
+            background: transparent;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .zoom-hint {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #a0a0a0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Melhorar aparência dos nodes do Mermaid */
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon {
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+            transition: all 0.2s ease;
+        }
+        
+        .mermaid .node:hover rect,
+        .mermaid .node:hover circle,
+        .mermaid .node:hover ellipse,
+        .mermaid .node:hover polygon {
+            filter: drop-shadow(0 6px 12px rgba(88, 166, 255, 0.5));
+            transform: scale(1.03);
+            cursor: pointer;
+        }
+        
+        .mermaid .edgePath .path {
+            stroke-width: 2.5px;
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+        }
+        
+        .mermaid .cluster rect {
+            fill: rgba(33, 38, 45, 0.6) !important;
+            stroke: #58a6ff !important;
+            stroke-width: 2.5px !important;
+            stroke-dasharray: 5, 5;
+            rx: 10px;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+        }
+        
+        .mermaid .cluster text {
+            font-weight: 600 !important;
+            fill: #58a6ff !important;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* SVG Pan Zoom controls customization */
+        .svg-pan-zoom-control {
+            background: rgba(0, 0, 0, 0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 6px !important;
+            backdrop-filter: blur(8px);
+        }
+        
+        .svg-pan-zoom-control rect {
+            fill: transparent !important;
+        }
+        
+        .svg-pan-zoom-control line,
+        .svg-pan-zoom-control circle,
+        .svg-pan-zoom-control path {
+            stroke: #58a6ff !important;
+            stroke-width: 1.5px !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="header-title">
+                    <img src="{{ root_path }}static/logo.png" alt="WDL Logo" class="wdl-logo">
+                    <h1>Workflow Graph</h1>
+                </div>
+                <nav class="nav">
+                    <a href="{{ root_path }}index.html">Home</a>
+                    <span style="color: #ecf0f1;">|</span>
+                    <a href="{{ back_to_doc }}">Back to Workflow</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container graph-page">
+        <div class="graph-header">
+            <h1>{{ workflow_name }}</h1>
+            <p>Interactive Workflow Execution Graph</p>
+        </div>
+        
+        <div class="graph-controls">
+            <button onclick="zoomIn()" title="Zoom In">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path>
+                </svg>
+                Zoom In
+            </button>
+            <button onclick="zoomOut()" title="Zoom Out">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                </svg>
+                Zoom Out
+            </button>
+            <button onclick="fitToScreen()" title="Fit to Screen">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                </svg>
+                Fit to Screen
+            </button>
+            <button onclick="resetZoom()" title="Reset View">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Reset
+            </button>
+        </div>
+        
+        <div class="graph-container">
+            <div id="graph-svg-container">
+                <pre class="mermaid">{{ mermaid_graph }}</pre>
+            </div>
+            <div class="zoom-hint">
+                🖱️ Scroll to zoom • Drag to pan • Double-click to reset
+            </div>
+        </div>
+    </main>
+    
+    <footer style="padding: 10px 0; flex-shrink: 0;">
+        <div class="container">
+            <p style="text-align: center; color: #666; margin: 0; font-size: 11px;">
+                Generated by WDL2Doc • Interactive Graph powered by Mermaid.js & svg-pan-zoom
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
