@@ -75,7 +75,7 @@ class TemplateRenderer:
 
         # Calculate how many levels up we need to go
         # Filter out '.' from parts to handle root-level files correctly
-        parent_parts = [p for p in current.parent.parts if p != '.']
+        parent_parts = [p for p in current.parent.parts if p != "."]
         current_depth = len(parent_parts)
 
         # Build relative path

@@ -292,12 +292,14 @@ class HtmlGenerator:
                     # Normalize path for URL
                     normalized_path = self.renderer._normalize_path(caller_doc.relative_path)
                     workflow_url = str(normalized_path.with_suffix(".html"))
-                    
-                    calling_workflows.append({
-                        "name": caller_doc.workflow.name,
-                        "file_path": str(caller_doc.relative_path),
-                        "url": workflow_url,
-                    })
+
+                    calling_workflows.append(
+                        {
+                            "name": caller_doc.workflow.name,
+                            "file_path": str(caller_doc.relative_path),
+                            "url": workflow_url,
+                        }
+                    )
 
         if not calling_workflows:
             return None

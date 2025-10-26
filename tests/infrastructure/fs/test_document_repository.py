@@ -186,10 +186,7 @@ def should_identify_external_files_correctly(temp_dir, document_repository):
 def should_identify_custom_external_dirs(temp_dir):
     """Test external file detection with custom external directories."""
     # Arrange
-    repository = DocumentRepository(
-        root_path=temp_dir, 
-        external_dirs=["vendor", "third_party"]
-    )
+    repository = DocumentRepository(root_path=temp_dir, external_dirs=["vendor", "third_party"])
     internal_path = temp_dir / "workflows" / "main.wdl"
     vendor_path = temp_dir / "vendor" / "lib.wdl"
     third_party_path = temp_dir / "third_party" / "utils.wdl"

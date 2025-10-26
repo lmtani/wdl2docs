@@ -23,10 +23,7 @@ class DocumentRepository:
     """
 
     def __init__(
-        self, 
-        root_path: Path, 
-        exclude_patterns: Optional[List[str]] = None,
-        external_dirs: Optional[List[str]] = None
+        self, root_path: Path, exclude_patterns: Optional[List[str]] = None, external_dirs: Optional[List[str]] = None
     ):
         """
         Initialize the repository.
@@ -104,7 +101,7 @@ class DocumentRepository:
     def is_external(self, wdl_path: Path) -> bool:
         """
         Check if a WDL file is external (third-party).
-        
+
         A file is considered external if:
         1. It's located outside the root_path, OR
         2. It's inside one of the configured external directories
@@ -118,12 +115,12 @@ class DocumentRepository:
         try:
             # Try to get path relative to root
             relative = self.get_relative_path(wdl_path)
-            
+
             # If get_relative_path returned the original path unchanged,
             # it means the file is outside root_path
             if relative == wdl_path:
                 return True
-            
+
             # Check if path contains any of the external directory names
             return any(ext_dir in relative.parts for ext_dir in self.external_dirs)
         except Exception:

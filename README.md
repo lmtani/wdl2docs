@@ -2,8 +2,8 @@
 
 Generate documentation and visual diagrams for WDL (Workflow Description Language) files.
 
-![Python](https://img.shields.io/badge/python-3.12+-green)
-![WDL](https://img.shields.io/badge/WDL-1.0+-blue)
+![Python](https://img.shields.io/badge/python-3.13-green)
+![WDL](https://img.shields.io/badge/WDL-blue)
 
 ## Installation
 
@@ -45,32 +45,12 @@ Generate complete HTML documentation for your WDL project:
 wdl2doc generate /path/to/wdl-project -o docs/
 ```
 
-**Options:**
-- `-o, --output PATH` - Output directory (default: `docs/wdl`)
-- `-e, --exclude PATTERN` - Patterns to exclude (repeatable)
-- `--external-dirs NAME` - Directories to treat as external (default: `external`)
-- `-v, --verbose` - Enable verbose logging
-
-**Example:**
-```bash
-wdl2doc generate . -o docs/ --exclude "test_*" --verbose
-```
-
 ### 2. Generate Workflow Graph
 
 Generate a Mermaid diagram for a specific workflow:
 
 ```bash
 wdl2doc graph workflow.wdl -o workflow_graph.md
-```
-
-**Options:**
-- `-o, --output PATH` - Output Markdown file (required)
-- `-v, --verbose` - Enable verbose logging
-
-**Example:**
-```bash
-wdl2doc graph workflows/analysis.wdl -o docs/analysis_graph.md
 ```
 
 ## Features
@@ -85,12 +65,8 @@ wdl2doc graph workflows/analysis.wdl -o docs/analysis_graph.md
 
 Run tests:
 ```bash
-uv run pytest
-```
-
-Check types:
-```bash
-make typecheck
+uv run pytest -v --cov=src tests --cov-report=term
+# or 'make test'
 ```
 
 ## Project Structure

@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 @click.version_option(version="0.1.0")
 def cli():
     """WDL2Doc - Generate documentation for WDL workflows and tasks."""
-    pass
 
 
 @cli.command()
@@ -32,7 +31,7 @@ def cli():
     type=click.Path(path_type=Path),
     default="docs/wdl",
     help="Output directory for generated documentation.",
-    show_default=True
+    show_default=True,
 )
 @click.option(
     "--exclude",
@@ -40,14 +39,14 @@ def cli():
     multiple=True,
     default=["__pycache__/", ".git/", "cached-data/"],
     help="Patterns to exclude from search.",
-    show_default=True
+    show_default=True,
 )
 @click.option(
     "--external-dirs",
     multiple=True,
     default=["external"],
     help="Directory names to treat as external dependencies.",
-    show_default=True
+    show_default=True,
 )
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging.")
 def generate(root_path, output, exclude, external_dirs, verbose):
@@ -90,13 +89,7 @@ def generate(root_path, output, exclude, external_dirs, verbose):
 
 @cli.command()
 @click.argument("wdl_file", type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(path_type=Path),
-    required=True,
-    help="Output Markdown file path."
-)
+@click.option("--output", "-o", type=click.Path(path_type=Path), required=True, help="Output Markdown file path.")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging.")
 def graph(wdl_file, output, verbose):
     """Generate a Mermaid graph diagram for a WDL workflow."""
