@@ -18,19 +18,22 @@ uv sync
 
 ### Docker
 
-Build the image:
-```bash
-docker build -t wdl2doc .
-```
-
 Run with Docker:
 ```bash
+# Create a directory with your user permissions
 mkdir output
+
 # Generate documentation
-docker run  --user $(id -u):$(id -g) --rm -v /path/to/wdl-project:/data -v $(pwd)/output:/output wdl2doc generate /data -o /output
+docker run  --user $(id -u):$(id -g) --rm \
+            -v /path/to/wdl-project:/data \
+            -v $(pwd)/output:/output \
+            taniguti/wdl2docs:0.1.0 generate /data -o /output
 
 # Generate graph
-docker run  --user $(id -u):$(id -g) --rm -v /path/to/wdl-project:/data -v $(pwd)/output:/output wdl2doc graph /data/workflow.wdl -o /output/graph.md
+docker run  --user $(id -u):$(id -g) --rm \
+            -v /path/to/wdl-project:/data \
+            -v $(pwd)/output:/output \
+            taniguti/wdl2docs:0.1.0 graph /data/workflow.wdl -o /output/graph.md
 ```
 
 ## Usage
