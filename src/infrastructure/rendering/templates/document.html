@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% from "macros/badges.html" import workflow_badge, task_badge, file_badge %}
+{% from "macros/tables.html" import inputs_table, outputs_table, imports_table, document_info_table %}
+{% from "components/document.html" import workflow_section_header, tasks_section_header, subworkflow_usage_banner, call_block, docker_images_grid, task_card %}
+{% from "components/modals.html" import graph_modal, source_modal %}
 
 {% block title %}{{ doc.name }} - WDL Documentation{% endblock %}
 
@@ -31,11 +35,11 @@
 <div class="card">
     <h2>
         {% if doc.has_workflow %}
-        <span class="badge badge-workflow">WORKFLOW</span>
+        {{ workflow_badge() }}
         {% elif doc.has_tasks %}
-        <span class="badge badge-task">TASKS</span>
+        {{ task_badge() }}
         {% else %}
-        <span class="badge badge-file">FILE</span>
+        {{ file_badge() }}
         {% endif %}
         {{ doc.name }}
     </h2>
@@ -44,219 +48,36 @@
     <p class="description">{{ doc.description }}</p>
     {% endif %}
     
-    <div class="table-wrapper">
-        <table>
-            <tr>
-                <th style="width: 150px;">File Path</th>
-                <td><code>{{ doc.relative_path }}</code></td>
-            </tr>
-            <tr>
-                <th>WDL Version</th>
-                <td>{{ doc.version }}</td>
-            </tr>
-            <tr>
-                <th>Type</th>
-                <td>{{ doc.document_type }}</td>
-            </tr>
-        </table>
-    </div>
+    {{ document_info_table(doc) }}
 </div>
 
 {% if doc.has_imports %}
 <div class="card section" id="imports">
     <h2>Imports</h2>
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Namespace</th>
-                    <th>Path</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for imp in doc.imports %}
-                <tr>
-                    <td><code>{{ imp.namespace or '-' }}</code></td>
-                    <td><code>{{ imp.path }}</code></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {{ imports_table(doc.imports) }}
 </div>
 {% endif %}
 
 {% if doc.has_workflow %}
 <div class="card section" id="workflow">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="margin: 0;">Workflow: {{ doc.workflow.name }}</h2>
-        <div style="display: flex; gap: 10px;">
-            {% if doc.workflow.has_graph %}
-            <button onclick="openGraphModal()" class="btn-graph" title="View workflow graph">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="18" cy="5" r="3"></circle>
-                    <circle cx="6" cy="12" r="3"></circle>
-                    <circle cx="18" cy="19" r="3"></circle>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
-                View Graph
-            </button>
-            {% endif %}
-            {% if doc.source_code %}
-            <button onclick="openSourceModal()" class="btn-source" title="View WDL source code">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="16 18 22 12 16 6"></polyline>
-                    <polyline points="8 6 2 12 8 18"></polyline>
-                </svg>
-                View Source
-            </button>
-            {% endif %}
-        </div>
-    </div>
+    {{ workflow_section_header(doc.workflow.name, doc.workflow.has_graph, doc.source_code) }}
     
     {% if doc.workflow.description %}
     <p class="description">{{ doc.workflow.description }}</p>
     {% endif %}
     
     {% if workflow_call_info %}
-    <div style="margin: 16px 0; padding: 12px; background: linear-gradient(135deg, #1f6feb 0%, #8b5cf6 100%); border-radius: 8px; border-left: 4px solid #a371f7;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            <strong style="font-size: 14px;">Subworkflow Usage</strong>
-        </div>
-        <p style="margin: 0; font-size: 14px;">
-            This workflow is called as a subworkflow by <strong>{{ workflow_call_info.count }}</strong> other workflow{{ 's' if workflow_call_info.count != 1 else '' }}:
-        </p>
-        <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
-            {% for caller in workflow_call_info.workflows %}
-            <li style="margin: 4px 0;">
-                <a href="{{ caller.url | relative_link(doc.relative_path) }}" style="color: #ecf0f1; text-decoration: underline;">
-                    {{ caller.name }}
-                </a>
-                <span style="opacity: 0.8;"> - <code style="background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 3px; font-size: 12px;">{{ caller.file_path }}</code></span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+    {{ subworkflow_usage_banner(workflow_call_info, doc.relative_path) }}
     {% endif %}
     
     {% if doc.workflow.has_inputs %}
     <h3 id="inputs">Inputs</h3>
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Default</th>
-                </tr>
-            </thead>
-            <tbody>
-                {# Sort inputs: structs first, then regular inputs (required and optional) #}
-                {% set struct_inputs = [] %}
-                {% set regular_inputs = [] %}
-                {% set default_inputs = [] %}
-                {% for input in doc.workflow.inputs %}
-                    {% if input.is_struct %}
-                        {% set _ = struct_inputs.append(input) %}
-                    {% elif input.has_default %}
-                        {% set _ = default_inputs.append(input) %}
-                    {% else %}
-                        {% set _ = regular_inputs.append(input) %}
-                    {% endif %}
-                {% endfor %}
-                
-                {# Render struct inputs first #}
-                {% for input in struct_inputs %}
-                <tr class="struct-row">
-                    <td>
-                        <details class="struct-details">
-                            <summary>
-                                <code>{{ input.name }}</code>
-                                <span class="struct-info">({{ input.type.field_count }} field{{ 's' if input.type.field_count != 1 else '' }})</span>
-                            </summary>
-                        </details>
-                    </td>
-                    <td><code>{{ input.type }}</code></td>
-                    <td>{{ input.description or '-' }}</td>
-                    <td>{% if input.default_value %}{{ input.default_value }}{% else %}-{% endif %}</td>
-                </tr>
-                {# Struct field rows - shown when expanded #}
-                {% for field_name, field_type in input.type.struct_fields.items() %}
-                <tr class="struct-field-row" data-parent="{{ input.name }}">
-                    <td class="struct-field-name"><code>{{ field_name }}</code></td>
-                    <td><code>{{ field_type }}</code></td>
-                    <td>-</td>
-                    <td>-</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-                
-                {# Render required inputs (without defaults) #}
-                {% for input in regular_inputs %}
-                <tr>
-                    <td><code>{{ input.name }}</code></td>
-                    <td><code>{{ input.type }}</code></td>
-                    <td>{{ input.description or '-' }}</td>
-                    <td>{% if input.default_value %}{{ input.default_value }}{% else %}-{% endif %}</td>
-                </tr>
-                {% endfor %}
-                
-                {# Render optional inputs (with defaults) - collapsed #}
-                {% if default_inputs %}
-                <tr class="default-inputs-row">
-                    <td colspan="4">
-                        <details class="default-inputs-details">
-                            <summary>
-                                <span class="default-inputs-info">{{ default_inputs|length }} optional input{{ 's' if default_inputs|length != 1 else '' }} with default value{{ 's' if default_inputs|length != 1 else '' }}</span>
-                            </summary>
-                        </details>
-                    </td>
-                </tr>
-                {# Default input rows - shown when expanded #}
-                {% for input in default_inputs %}
-                <tr class="default-input-row" style="display: none;">
-                    <td><code>{{ input.name }}</code></td>
-                    <td><code>{{ input.type }}</code></td>
-                    <td>{{ input.description or '-' }}</td>
-                    <td>{{ input.default_value }}</td>
-                </tr>
-                {% endfor %}
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
+    {{ inputs_table(doc.workflow.inputs) }}
     {% endif %}
     
     {% if doc.workflow.has_outputs %}
     <h3 id="outputs">Outputs</h3>
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Expression</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for output in doc.workflow.outputs %}
-                <tr>
-                    <td><code>{{ output.name }}</code></td>
-                    <td><code>{{ output.type }}</code></td>
-                    <td><code>{{ output.expression or '-' }}</code></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {{ outputs_table(doc.workflow.outputs) }}
     {% endif %}
     
     {% if doc.workflow.has_calls %}
@@ -264,61 +85,7 @@
     <p class="description">This workflow calls the following tasks or subworkflows:</p>
     
     {% for call in doc.workflow.calls %}
-    <div class="call-block">
-        <h4>
-            <span class="badge badge-call">CALL</span>
-            {% if call.is_workflow_call %}
-                <span class="badge badge-workflow" title="This call references a workflow">WORKFLOW</span>
-            {% else %}
-                <span class="badge badge-task" title="This call references a task">TASK</span>
-            {% endif %}
-            {% if call.link_target %}
-                {% if call.is_local %}
-                    <a href="{{ call.link_target }}" class="call-link call-link-local">
-                        <code>{{ call.display_name }}</code>
-                    </a>
-                {% else %}
-                    <a href="{{ call.link_target | relative_link(doc.relative_path) }}" class="call-link call-link-external">
-                        <code>{{ call.display_name }}</code>
-                        <span class="external-icon" title="Opens in another page">↗</span>
-                    </a>
-                {% endif %}
-            {% else %}
-                <code>{{ call.display_name }}</code>
-            {% endif %}
-            {% if call.alias %}
-            <span class="call-target">→ {{ call.task_or_workflow }}</span>
-            {% endif %}
-        </h4>
-        
-        {% if call.inputs_mapping %}
-        <details>
-            <summary>
-                Input Mappings ({{ call.inputs_mapping|length }})
-            </summary>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Input</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for key, value in call.inputs_mapping.items() %}
-                        <tr>
-                            <td><code>{{ key }}</code></td>
-                            <td><code>{{ value }}</code></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </details>
-        {% else %}
-        <p class="description" style="margin-top: 10px;">No explicit input mappings</p>
-        {% endif %}
-    </div>
+    {{ call_block(call, doc.relative_path) }}
     {% endfor %}
     {% endif %}
     
@@ -326,186 +93,17 @@
     <h3 id="docker-images">Images</h3>
     <p class="description">Container images used by tasks in this workflow:</p>
     
-    <div class="docker-images-grid">
-        {% for docker in doc.workflow.docker_images %}
-        <div class="docker-card {% if docker.is_parameterized %}docker-parameterized{% endif %}">
-            <div class="docker-header">
-                <span class="docker-icon">🐳</span>
-                {% if docker.is_parameterized %}
-                <strong>Parameterized Image</strong>
-                {% else %}
-                <strong>{{ docker.short_name }}</strong>
-                {% endif %}
-            </div>
-            <div class="docker-body">
-                {% if docker.is_parameterized %}
-                <div class="docker-badge docker-badge-param">
-                    <span>⚙️ Parameterized</span>
-                </div>
-                <p class="docker-image-text">
-                    <small>Configured via input:</small><br>
-                    <code>{{ docker.parameter_name or 'runtime parameter' }}</code>
-                </p>
-                {% else %}
-                <p class="docker-image-text">
-                    <code>{{ docker.image }}</code>
-                </p>
-                {% endif %}
-                
-                <div class="docker-tasks">
-                    <strong>Used by {{ docker.task_count }} task{{ 's' if docker.task_count != 1 else '' }}:</strong>
-                    <ul class="task-list">
-                        {% for task_name in docker.task_names %}
-                        <li><code>{{ task_name }}</code></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+    {{ docker_images_grid(doc.workflow.docker_images) }}
     {% endif %}
 </div>
 {% endif %}
 
 {% if doc.has_tasks %}
 <div class="section" id="tasks">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="margin: 0;">Tasks</h2>
-        {% if doc.source_code %}
-        <button onclick="openSourceModal()" class="btn-source" title="View WDL source code">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="16 18 22 12 16 6"></polyline>
-                <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
-            View Source
-        </button>
-        {% endif %}
-    </div>
+    {{ tasks_section_header(doc.source_code) }}
     
     {% for task in doc.tasks %}
-    <div class="card" id="task-{{ task.name }}" style="margin-bottom: 20px;">
-        <h3><span class="badge badge-task">TASK</span> {{ task.name }}</h3>
-        
-        {% if task.description %}
-        <p class="description">{{ task.description }}</p>
-        {% endif %}
-        
-        {% if task.has_inputs %}
-        <h4>Inputs</h4>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Default</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {# Sort inputs: structs first, then regular inputs #}
-                    {% set struct_inputs = [] %}
-                    {% set regular_inputs = [] %}
-                    {% for input in task.inputs %}
-                        {% if input.is_struct %}
-                            {% set _ = struct_inputs.append(input) %}
-                        {% else %}
-                            {% set _ = regular_inputs.append(input) %}
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {# Render struct inputs first #}
-                    {% for input in struct_inputs %}
-                    <tr class="struct-row">
-                        <td>
-                            <details class="struct-details">
-                                <summary>
-                                    <code>{{ input.name }}</code>
-                                    <span class="struct-info">({{ input.type.field_count }} field{{ 's' if input.type.field_count != 1 else '' }})</span>
-                                </summary>
-                            </details>
-                        </td>
-                        <td><code>{{ input.type }}</code></td>
-                        <td>{{ input.description or '-' }}</td>
-                        <td>{% if input.default_value %}{{ input.default_value }}{% else %}-{% endif %}</td>
-                    </tr>
-                    {# Struct field rows - shown when expanded #}
-                    {% for field_name, field_type in input.type.struct_fields.items() %}
-                    <tr class="struct-field-row" data-parent="{{ input.name }}">
-                        <td class="struct-field-name"><code>{{ field_name }}</code></td>
-                        <td><code>{{ field_type }}</code></td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                    {% endfor %}
-                    {% endfor %}
-                    
-                    {# Render regular inputs #}
-                    {% for input in regular_inputs %}
-                    <tr>
-                        <td><code>{{ input.name }}</code></td>
-                        <td><code>{{ input.type }}</code></td>
-                        <td>{{ input.description or '-' }}</td>
-                        <td>{% if input.default_value %}{{ input.default_value }}{% else %}-{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-        
-        {% if task.has_command %}
-        <h4>Command</h4>
-        <pre><code class="language-bash">{{ task.command.formatted_command }}</code></pre>
-        {% endif %}
-        
-        {% if task.has_outputs %}
-        <h4>Outputs</h4>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Expression</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for output in task.outputs %}
-                    <tr>
-                        <td><code>{{ output.name }}</code></td>
-                        <td><code>{{ output.type }}</code></td>
-                        <td><code>{{ output.expression or '-' }}</code></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-        
-        {% if task.has_runtime %}
-        <h4>Runtime</h4>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Key</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for key, value in task.runtime.items() %}
-                    <tr>
-                        <td><code>{{ key }}</code></td>
-                        <td><code>{{ value }}</code></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-    </div>
+    {{ task_card(task) }}
     {% endfor %}
 </div>
 {% endif %}
@@ -515,308 +113,11 @@
 </div>
 
 {% if doc.has_workflow and doc.workflow.has_graph %}
-<!-- Graph Modal -->
-<div id="graphModal" class="graph-modal">
-    <div class="graph-modal-content">
-        <div class="graph-modal-header">
-            <h2>{{ doc.workflow.name }} - Workflow Graph</h2>
-            <button class="graph-modal-close" onclick="closeGraphModal()">&times;</button>
-        </div>
-        <div class="graph-modal-controls">
-            <button onclick="zoomIn()" title="Zoom In">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path>
-                </svg>
-                Zoom In
-            </button>
-            <button onclick="zoomOut()" title="Zoom Out">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
-                </svg>
-                Zoom Out
-            </button>
-            <button onclick="fitToScreen()" title="Fit to Screen">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-                </svg>
-                Fit
-            </button>
-            <button onclick="resetZoom()" title="Reset View">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                Reset
-            </button>
-        </div>
-        <div class="graph-modal-body">
-            <div id="graphContainer"></div>
-            <div class="zoom-hint">
-                🖱️ Scroll to zoom • Drag to pan • Double-click to reset • ESC to close
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Hidden mermaid graph data -->
-<div id="graphData" style="display: none;">
-<pre class="mermaid-source">{{ doc.workflow.mermaid_graph | safe }}</pre>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-<script>
-let panZoomInstance = null;
-let modalOpen = false;
-let graphRendered = false;
-
-function openGraphModal() {
-    const modal = document.getElementById('graphModal');
-    const graphContainer = document.getElementById('graphContainer');
-    const graphData = document.getElementById('graphData');
-    
-    modal.style.display = 'flex';
-    modalOpen = true;
-    
-    // Render the graph when opening modal
-    if (!graphRendered && graphData) {
-        const mermaidCode = graphData.querySelector('.mermaid-source').textContent;
-        
-        // Create a new div for mermaid to render
-        graphContainer.innerHTML = '<div class="mermaid">' + mermaidCode + '</div>';
-        
-        // Wait for DOM update
-        setTimeout(async () => {
-            if (typeof window.mermaid !== 'undefined') {
-                try {
-                    const mermaidDiv = graphContainer.querySelector('.mermaid');
-                    await window.mermaid.run({
-                        nodes: [mermaidDiv]
-                    });
-                    
-                    graphRendered = true;
-                    
-                    // Initialize pan zoom after rendering
-                    setTimeout(() => {
-                        initializePanZoom();
-                    }, 300);
-                } catch (error) {
-                    console.error('Mermaid rendering error:', error);
-                }
-            }
-        }, 100);
-    } else if (graphRendered) {
-        setTimeout(() => {
-            initializePanZoom();
-        }, 100);
-    }
-}
-
-function closeGraphModal() {
-    const modal = document.getElementById('graphModal');
-    modal.style.display = 'none';
-    modalOpen = false;
-    
-    if (panZoomInstance) {
-        panZoomInstance.destroy();
-        panZoomInstance = null;
-    }
-}
-
-function initializePanZoom() {
-    const svg = document.querySelector('#graphContainer svg');
-    if (svg) {
-        // Destroy existing instance if any
-        if (panZoomInstance) {
-            panZoomInstance.destroy();
-            panZoomInstance = null;
-        }
-        
-        // Remove width/height attributes to allow proper scaling
-        svg.removeAttribute('width');
-        svg.removeAttribute('height');
-        svg.removeAttribute('style');
-        
-        // Set SVG to fill container
-        svg.style.width = '100%';
-        svg.style.height = '100%';
-        svg.style.maxWidth = '100%';
-        svg.style.maxHeight = '100%';
-        
-        // Get the viewBox or create one from bbox
-        if (!svg.getAttribute('viewBox')) {
-            const bbox = svg.getBBox();
-            svg.setAttribute('viewBox', `${bbox.x - 20} ${bbox.y - 20} ${bbox.width + 40} ${bbox.height + 40}`);
-        }
-        
-        // Preserve aspect ratio
-        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        
-        panZoomInstance = svgPanZoom(svg, {
-            zoomEnabled: true,
-            controlIconsEnabled: false,
-            fit: true,
-            center: true,
-            minZoom: 0.1,
-            maxZoom: 10,
-            zoomScaleSensitivity: 0.3,
-            dblClickZoomEnabled: true,
-            mouseWheelZoomEnabled: true,
-            preventMouseEventsDefault: true
-        });
-        
-        // Force proper sizing
-        panZoomInstance.resize();
-        panZoomInstance.fit();
-        panZoomInstance.center();
-    }
-}
-
-function resetZoom() {
-    if (panZoomInstance) {
-        panZoomInstance.resetZoom();
-        panZoomInstance.center();
-        panZoomInstance.fit();
-    }
-}
-
-function zoomIn() {
-    if (panZoomInstance) {
-        panZoomInstance.zoomIn();
-    }
-}
-
-function zoomOut() {
-    if (panZoomInstance) {
-        panZoomInstance.zoomOut();
-    }
-}
-
-function fitToScreen() {
-    if (panZoomInstance) {
-        panZoomInstance.fit();
-        panZoomInstance.center();
-    }
-}
-
-// Close modal on ESC key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' && modalOpen) {
-        closeGraphModal();
-    }
-});
-
-// Close modal when clicking outside
-document.getElementById('graphModal')?.addEventListener('click', function(event) {
-    if (event.target === this) {
-        closeGraphModal();
-    }
-});
-</script>
+{{ graph_modal(doc.workflow.name, doc.workflow.mermaid_graph) }}
 {% endif %}
 
-<!-- Source Code Modal -->
 {% if doc.source_code %}
-<div id="sourceModal" class="graph-modal">
-    <div class="graph-modal-content">
-        <div class="graph-modal-header">
-            <h2>{{ doc.name }} - WDL Source Code</h2>
-            <button class="graph-modal-close" onclick="closeSourceModal()">&times;</button>
-        </div>
-        <div class="graph-modal-controls">
-            <button onclick="copySourceCode()" title="Copy to clipboard">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                Copy Code
-            </button>
-            <span id="copyFeedback" style="color: #58a6ff; margin-left: 10px; display: none;">✓ Copied!</span>
-        </div>
-        <div class="graph-modal-body">
-            <div id="sourceContainer">
-                <pre><code class="language-wdl">{{ doc.source_code }}</code></pre>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Hidden source code data -->
-<div id="sourceData" style="display: none;">{{ doc.source_code }}</div>
-
-<script>
-// Source code modal functions
-let sourceModalOpen = false;
-
-function openSourceModal() {
-    const modal = document.getElementById('sourceModal');
-    modal.style.display = 'flex';
-    sourceModalOpen = true;
-    
-    // Apply syntax highlighting
-    setTimeout(() => {
-        if (typeof Prism !== 'undefined') {
-            Prism.highlightAll();
-        }
-    }, 100);
-}
-
-function closeSourceModal() {
-    const modal = document.getElementById('sourceModal');
-    modal.style.display = 'none';
-    sourceModalOpen = false;
-}
-
-function copySourceCode() {
-    const sourceData = document.getElementById('sourceData');
-    if (sourceData) {
-        const text = sourceData.textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            const feedback = document.getElementById('copyFeedback');
-            feedback.style.display = 'inline';
-            setTimeout(() => {
-                feedback.style.display = 'none';
-            }, 2000);
-        }).catch(err => {
-            console.error('Failed to copy:', err);
-        });
-    }
-}
-
-// Close source modal on ESC key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' && sourceModalOpen) {
-        closeSourceModal();
-    }
-});
-
-// Close source modal when clicking outside
-document.getElementById('sourceModal')?.addEventListener('click', function(event) {
-    if (event.target === this) {
-        closeSourceModal();
-    }
-});
-
-// Default inputs collapse/expand functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const defaultInputsDetails = document.querySelectorAll('.default-inputs-details');
-    
-    defaultInputsDetails.forEach(details => {
-        details.addEventListener('toggle', function() {
-            // Find the parent row
-            const parentRow = this.closest('tr');
-            if (!parentRow) return;
-            
-            // Find all sibling rows that are default-input-row
-            let nextRow = parentRow.nextElementSibling;
-            while (nextRow && nextRow.classList.contains('default-input-row')) {
-                if (this.open) {
-                    nextRow.style.display = '';
-                } else {
-                    nextRow.style.display = 'none';
-                }
-                nextRow = nextRow.nextElementSibling;
-            }
-        });
-    });
-});
-</script>
+{{ source_modal(doc.name, doc.source_code) }}
 {% endif %}
+
 {% endblock %}

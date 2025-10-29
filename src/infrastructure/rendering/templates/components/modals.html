@@ -1,0 +1,285 @@
+{# Componentes de modals reutilizáveis #}
+
+{# Modal de gráfico de workflow #}
+{% macro graph_modal(workflow_name, mermaid_graph) %}
+<div id="graphModal" class="graph-modal">
+    <div class="graph-modal-content">
+        <div class="graph-modal-header">
+            <h2>{{ workflow_name }} - Workflow Graph</h2>
+            <button class="graph-modal-close" onclick="closeGraphModal()">&times;</button>
+        </div>
+        <div class="graph-modal-controls">
+            <button onclick="zoomIn()" title="Zoom In">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path>
+                </svg>
+                Zoom In
+            </button>
+            <button onclick="zoomOut()" title="Zoom Out">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                </svg>
+                Zoom Out
+            </button>
+            <button onclick="fitToScreen()" title="Fit to Screen">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                </svg>
+                Fit
+            </button>
+            <button onclick="resetZoom()" title="Reset View">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Reset
+            </button>
+        </div>
+        <div class="graph-modal-body">
+            <div id="graphContainer"></div>
+            <div class="zoom-hint">
+                🖱️ Scroll to zoom • Drag to pan • Double-click to reset • ESC to close
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden mermaid graph data -->
+<div id="graphData" style="display: none;">
+<pre class="mermaid-source">{{ mermaid_graph | safe }}</pre>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<script>
+let panZoomInstance = null;
+let modalOpen = false;
+let graphRendered = false;
+
+function openGraphModal() {
+    const modal = document.getElementById('graphModal');
+    const graphContainer = document.getElementById('graphContainer');
+    const graphData = document.getElementById('graphData');
+    
+    modal.style.display = 'flex';
+    modalOpen = true;
+    
+    if (!graphRendered && graphData) {
+        const mermaidCode = graphData.querySelector('.mermaid-source').textContent;
+        graphContainer.innerHTML = '<div class="mermaid">' + mermaidCode + '</div>';
+        
+        setTimeout(async () => {
+            if (typeof window.mermaid !== 'undefined') {
+                try {
+                    const mermaidDiv = graphContainer.querySelector('.mermaid');
+                    await window.mermaid.run({
+                        nodes: [mermaidDiv]
+                    });
+                    
+                    graphRendered = true;
+                    setTimeout(() => {
+                        initializePanZoom();
+                    }, 300);
+                } catch (error) {
+                    console.error('Mermaid rendering error:', error);
+                }
+            }
+        }, 100);
+    } else if (graphRendered) {
+        setTimeout(() => {
+            initializePanZoom();
+        }, 100);
+    }
+}
+
+function closeGraphModal() {
+    const modal = document.getElementById('graphModal');
+    modal.style.display = 'none';
+    modalOpen = false;
+    
+    if (panZoomInstance) {
+        panZoomInstance.destroy();
+        panZoomInstance = null;
+    }
+}
+
+function initializePanZoom() {
+    const svg = document.querySelector('#graphContainer svg');
+    if (svg) {
+        if (panZoomInstance) {
+            panZoomInstance.destroy();
+            panZoomInstance = null;
+        }
+        
+        svg.removeAttribute('width');
+        svg.removeAttribute('height');
+        svg.removeAttribute('style');
+        
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.maxWidth = '100%';
+        svg.style.maxHeight = '100%';
+        
+        if (!svg.getAttribute('viewBox')) {
+            const bbox = svg.getBBox();
+            svg.setAttribute('viewBox', `${bbox.x - 20} ${bbox.y - 20} ${bbox.width + 40} ${bbox.height + 40}`);
+        }
+        
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        
+        panZoomInstance = svgPanZoom(svg, {
+            zoomEnabled: true,
+            controlIconsEnabled: false,
+            fit: true,
+            center: true,
+            minZoom: 0.1,
+            maxZoom: 10,
+            zoomScaleSensitivity: 0.3,
+            dblClickZoomEnabled: true,
+            mouseWheelZoomEnabled: true,
+            preventMouseEventsDefault: true
+        });
+        
+        panZoomInstance.resize();
+        panZoomInstance.fit();
+        panZoomInstance.center();
+    }
+}
+
+function resetZoom() {
+    if (panZoomInstance) {
+        panZoomInstance.resetZoom();
+        panZoomInstance.center();
+        panZoomInstance.fit();
+    }
+}
+
+function zoomIn() {
+    if (panZoomInstance) {
+        panZoomInstance.zoomIn();
+    }
+}
+
+function zoomOut() {
+    if (panZoomInstance) {
+        panZoomInstance.zoomOut();
+    }
+}
+
+function fitToScreen() {
+    if (panZoomInstance) {
+        panZoomInstance.fit();
+        panZoomInstance.center();
+    }
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && modalOpen) {
+        closeGraphModal();
+    }
+});
+
+document.getElementById('graphModal')?.addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeGraphModal();
+    }
+});
+</script>
+{%- endmacro %}
+
+{# Modal de código fonte #}
+{% macro source_modal(doc_name, source_code) %}
+<div id="sourceModal" class="graph-modal">
+    <div class="graph-modal-content">
+        <div class="graph-modal-header">
+            <h2>{{ doc_name }} - WDL Source Code</h2>
+            <button class="graph-modal-close" onclick="closeSourceModal()">&times;</button>
+        </div>
+        <div class="graph-modal-controls">
+            <button onclick="copySourceCode()" title="Copy to clipboard">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                Copy Code
+            </button>
+            <span id="copyFeedback" style="color: #58a6ff; margin-left: 10px; display: none;">✓ Copied!</span>
+        </div>
+        <div class="graph-modal-body">
+            <div id="sourceContainer">
+                <pre><code class="language-wdl">{{ source_code }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="sourceData" style="display: none;">{{ source_code }}</div>
+
+<script>
+let sourceModalOpen = false;
+
+function openSourceModal() {
+    const modal = document.getElementById('sourceModal');
+    modal.style.display = 'flex';
+    sourceModalOpen = true;
+    
+    setTimeout(() => {
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
+    }, 100);
+}
+
+function closeSourceModal() {
+    const modal = document.getElementById('sourceModal');
+    modal.style.display = 'none';
+    sourceModalOpen = false;
+}
+
+function copySourceCode() {
+    const sourceData = document.getElementById('sourceData');
+    if (sourceData) {
+        const text = sourceData.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.style.display = 'inline';
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    }
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && sourceModalOpen) {
+        closeSourceModal();
+    }
+});
+
+document.getElementById('sourceModal')?.addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeSourceModal();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const defaultInputsDetails = document.querySelectorAll('.default-inputs-details');
+    
+    defaultInputsDetails.forEach(details => {
+        details.addEventListener('toggle', function() {
+            const parentRow = this.closest('tr');
+            if (!parentRow) return;
+            
+            let nextRow = parentRow.nextElementSibling;
+            while (nextRow && nextRow.classList.contains('default-input-row')) {
+                if (this.open) {
+                    nextRow.style.display = '';
+                } else {
+                    nextRow.style.display = 'none';
+                }
+                nextRow = nextRow.nextElementSibling;
+            }
+        });
+    });
+});
+</script>
+{%- endmacro %}

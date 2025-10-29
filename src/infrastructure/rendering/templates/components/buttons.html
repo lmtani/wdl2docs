@@ -1,0 +1,33 @@
+{# Componentes de botões de ação reutilizáveis #}
+
+{# Botão para visualizar gráfico #}
+{% macro graph_button() %}
+<button onclick="openGraphModal()" class="btn-graph" title="View workflow graph">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+    </svg>
+    View Graph
+</button>
+{%- endmacro %}
+
+{# Botão para visualizar código fonte #}
+{% macro source_button() %}
+<button onclick="openSourceModal()" class="btn-source" title="View WDL source code">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="16 18 22 12 16 6"></polyline>
+        <polyline points="8 6 2 12 8 18"></polyline>
+    </svg>
+    View Source
+</button>
+{%- endmacro %}
+
+{# Container de botões de ação #}
+{% macro action_buttons() %}
+<div style="display: flex; gap: 10px;">
+    {{ caller() }}
+</div>
+{%- endmacro %}

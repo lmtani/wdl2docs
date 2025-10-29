@@ -1,7 +1,4 @@
 {% extends "base.html" %}
-{% from "macros/badges.html" import external_badge, count_items %}
-{% from "components/stats.html" import stats_grid, stat_card, stat_card_highlighted %}
-{% from "components/tabs.html" import tabs_container, tab_button, tab_content, tab_notice %}
 
 {% block title %}Docker Inventory - WDL Documentation{% endblock %}
 
@@ -10,16 +7,34 @@
 {% block content %}
 <div class="card">
     <h2>Overview</h2>
-    {% call stats_grid() %}
-        {{ stat_card(total_repositories_internal, 'Internal Repositories') }}
-        {{ stat_card(total_images_internal, 'Internal Images') }}
-        {{ stat_card(total_usages_internal, 'Internal Usages') }}
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number">{{ total_repositories_internal }}</div>
+            <div class="label">Internal Repositories</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ total_images_internal }}</div>
+            <div class="label">Internal Images</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ total_usages_internal }}</div>
+            <div class="label">Internal Usages</div>
+        </div>
         {% if has_external %}
-        {{ stat_card_highlighted(total_repositories_external, 'External Repositories') }}
-        {{ stat_card_highlighted(total_images_external, 'External Images') }}
-        {{ stat_card_highlighted(total_usages_external, 'External Usages') }}
+        <div class="stat-card" style="border-left: 3px solid var(--warning);">
+            <div class="number" style="color: var(--warning);">{{ total_repositories_external }}</div>
+            <div class="label">External Repositories</div>
+        </div>
+        <div class="stat-card" style="border-left: 3px solid var(--warning);">
+            <div class="number" style="color: var(--warning);">{{ total_images_external }}</div>
+            <div class="label">External Images</div>
+        </div>
+        <div class="stat-card" style="border-left: 3px solid var(--warning);">
+            <div class="number" style="color: var(--warning);">{{ total_usages_external }}</div>
+            <div class="label">External Usages</div>
+        </div>
         {% endif %}
-    {% endcall %}
+    </div>
 </div>
 
 <div class="card">
@@ -38,14 +53,24 @@
 
 <!-- Tabs Navigation -->
 {% if has_external %}
-{% call tabs_container() %}
-    {{ tab_button('internal', '📁', 'Internal', total_repositories_internal, active=true, onclick_function='switchDockerTab') }}
-    {{ tab_button('external', '📦', 'External', total_repositories_external, onclick_function='switchDockerTab') }}
-{% endcall %}
+<div class="tabs-container">
+    <div class="tabs">
+        <button class="tab-button active" data-tab="internal" onclick="switchDockerTab('internal')">
+            <span class="tab-icon">📁</span>
+            <span class="tab-label">Internal</span>
+            <span class="tab-count">{{ total_repositories_internal }}</span>
+        </button>
+        <button class="tab-button" data-tab="external" onclick="switchDockerTab('external')">
+            <span class="tab-icon">📦</span>
+            <span class="tab-label">External</span>
+            <span class="tab-count">{{ total_repositories_external }}</span>
+        </button>
+    </div>
+</div>
 {% endif %}
 
 <!-- Internal Tab Content -->
-{% call tab_content('internal', active=true) %}
+<div id="tab-internal" class="tab-content active">
 <div class="docker-inventory">
     {% for repo_name, repo_data in repositories_internal.items() %}
     {% set repo_index = loop.index0 %}
@@ -54,7 +79,7 @@
             <h2>
                 <span class="repo-icon">📦</span>
                 {{ repo_name }}
-                {{ count_items(repo_data.image_count, 'image') }}
+                <span class="badge badge-count">{{ repo_data.image_count }} image{{ 's' if repo_data.image_count != 1 else '' }}</span>
             </h2>
         </div>
         
@@ -104,12 +129,20 @@
     </div>
     {% endfor %}
 </div>
-{% endcall %}
+</div>
 
 <!-- External Tab Content -->
 {% if has_external %}
-{% call tab_content('external') %}
-    {{ tab_notice('⚠️', 'Third-Party Docker Images', 'These Docker images are used by external workflows and tasks from third-party sources.') }}
+<div id="tab-external" class="tab-content">
+    <div class="card section external-section">
+        <div class="external-notice">
+            <span class="notice-icon">⚠️</span>
+            <div class="notice-content">
+                <strong>Third-Party Docker Images</strong>
+                <p>These Docker images are used by external workflows and tasks from third-party sources.</p>
+            </div>
+        </div>
+    </div>
     
 <div class="docker-inventory">
     {% for repo_name, repo_data in repositories_external.items() %}
@@ -119,8 +152,8 @@
             <h2>
                 <span class="repo-icon">📦</span>
                 {{ repo_name }}
-                {{ count_items(repo_data.image_count, 'image') }}
-                {{ external_badge() }}
+                <span class="badge badge-count">{{ repo_data.image_count }} image{{ 's' if repo_data.image_count != 1 else '' }}</span>
+                <span class="badge badge-external">EXTERNAL</span>
             </h2>
         </div>
         
@@ -173,7 +206,7 @@
     </div>
     {% endfor %}
 </div>
-{% endcall %}
+</div>
 {% endif %}
 
 <script>
