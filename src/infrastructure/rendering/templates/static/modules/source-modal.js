@@ -35,25 +35,23 @@ export class SourceModal {
     }
     
     bindDefaultInputsToggles() {
-        // Toggle para inputs com valores default (colapsáveis)
-        document.addEventListener('DOMContentLoaded', () => {
-            const defaultInputsDetails = document.querySelectorAll('.default-inputs-details');
-            
-            defaultInputsDetails.forEach(details => {
-                details.addEventListener('toggle', function() {
-                    const parentRow = this.closest('tr');
-                    if (!parentRow) return;
-                    
-                    let nextRow = parentRow.nextElementSibling;
-                    while (nextRow && nextRow.classList.contains('default-input-row')) {
-                        if (this.open) {
-                            nextRow.style.display = '';
-                        } else {
-                            nextRow.style.display = 'none';
-                        }
-                        nextRow = nextRow.nextElementSibling;
+        // Toggle for inputs with default values (collapsible)
+        const defaultInputsDetails = document.querySelectorAll('.default-inputs-details');
+        
+        defaultInputsDetails.forEach(details => {
+            details.addEventListener('toggle', function() {
+                const parentRow = this.closest('tr');
+                if (!parentRow) return;
+                
+                let nextRow = parentRow.nextElementSibling;
+                while (nextRow && nextRow.classList.contains('default-input-row')) {
+                    if (this.open) {
+                        nextRow.style.display = '';
+                    } else {
+                        nextRow.style.display = 'none';
                     }
-                });
+                    nextRow = nextRow.nextElementSibling;
+                }
             });
         });
     }
@@ -119,10 +117,26 @@ export class SourceModal {
     }
 }
 
-// Criar instância global para uso nos templates
+// Create global instance for use in templates
 let sourceModalInstance = null;
 
-// Funções globais para compatibilidade com templates existentes
+// Initialize immediately (module is loaded after DOM)
+function initSourceModal() {
+    if (!sourceModalInstance) {
+        sourceModalInstance = new SourceModal();
+    }
+}
+
+// Initialize when this module is imported
+// If DOM is already ready, init now; otherwise wait
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSourceModal);
+} else {
+    // DOM is already ready, init immediately
+    initSourceModal();
+}
+
+// Global functions for compatibility with existing templates
 window.openSourceModal = function() {
     if (!sourceModalInstance) {
         sourceModalInstance = new SourceModal();
