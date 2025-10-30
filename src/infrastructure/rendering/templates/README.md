@@ -189,12 +189,3 @@ Larger blocks of functionality. Use components for:
 4. **Avoid complex logic** in templates, move to Python when possible
 5. **Test visually** after changes in shared components
 6. **Use `{% call %}` blocks** for components needing custom content
-
-## Migrating Old Templates
-
-If you find duplicated code in old templates (`*_backup.html`):
-
-1. Extract to a new macro/component
-2. Update all templates using that code
-3. Test rendering
-4. Remove backup files once confirmed working
