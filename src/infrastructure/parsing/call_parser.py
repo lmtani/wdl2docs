@@ -141,7 +141,7 @@ class CallParser:
         """
         if is_local:
             # Local reference - use anchor
-            return f"#{callee.name}"
+            return f"#task-{callee.name}"
 
         # Imported reference - find the import and create relative link
         namespace = call.callee_id[0] if call.callee_id else None

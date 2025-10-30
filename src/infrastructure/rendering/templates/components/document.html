@@ -84,7 +84,7 @@
                         <code>{{ call.display_name }}</code>
                     </a>
                 {% else %}
-                    <a href="{{ call.link_target | relative_link(doc_relative_path) }}"
+                    <a href="{{ call.link_target | relative_link(doc_relative_path) }}#task-{{ call.task_or_workflow }}"
                        class="call-link call-link-external">
                         <code>{{ call.display_name }}</code>
                         <span class="external-icon" title="Opens in another page">↗</span>
