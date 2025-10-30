@@ -16,19 +16,19 @@
                 {% set struct_inputs = [] %}
                 {% set regular_inputs = [] %}
                 {% set default_inputs = [] %}
-                {% for input in inputs %}
-                    {% if input.is_struct %}
-                        {% set _ = struct_inputs.append(input) %}
-                    {% elif input.has_default %}
-                        {% set _ = default_inputs.append(input) %}
+                {% for inp in inputs %}
+                    {% if inp.is_struct %}
+                        {% set _ = struct_inputs.append(inp) %}
+                    {% elif inp.has_default %}
+                        {% set _ = default_inputs.append(inp) %}
                     {% else %}
-                        {% set _ = regular_inputs.append(input) %}
+                        {% set _ = regular_inputs.append(inp) %}
                     {% endif %}
                 {% endfor %}
                 {# Renderizar struct inputs primeiro #}
-                {% for input in struct_inputs %}{{ struct_input_row(input) }}{% endfor %}
+                {% for inp in struct_inputs %}{{ struct_input_row(inp) }}{% endfor %}
                 {# Renderizar inputs obrigatórios #}
-                {% for input in regular_inputs %}{{ input_row(input) }}{% endfor %}
+                {% for inp in regular_inputs %}{{ input_row(inp) }}{% endfor %}
                 {# Renderizar inputs opcionais (com defaults) - colapsados #}
                 {% if default_inputs %}
                     <tr class="default-inputs-row">
@@ -40,16 +40,16 @@
                             </details>
                         </td>
                     </tr>
-                    {% for input in default_inputs %}
+                    {% for inp in default_inputs %}
                         <tr class="default-input-row" style="display: none;">
                             <td>
-                                <code>{{ input.name }}</code>
+                                <code>{{ inp.name }}</code>
                             </td>
                             <td>
-                                <code>{{ input.type }}</code>
+                                <code>{{ inp.type }}</code>
                             </td>
-                            <td>{{ input.description or '-' }}</td>
-                            <td>{{ input.default_value }}</td>
+                            <td>{{ inp.description or '-' }}</td>
+                            <td>{{ inp.default_value }}</td>
                         </tr>
                     {% endfor %}
                 {% endif %}
@@ -58,18 +58,18 @@
     </div>
 {%- endmacro %}
 {# Linha de input simples #}
-{% macro input_row(input) %}
+{% macro input_row(inp) %}
     <tr>
         <td>
-            <code>{{ input.name }}</code>
+            <code>{{ inp.name }}</code>
         </td>
         <td>
-            <code>{{ input.type }}</code>
+            <code>{{ inp.type }}</code>
         </td>
-        <td>{{ input.description or '-' }}</td>
+        <td>{{ inp.description or '-' }}</td>
         <td>
-            {% if input.default_value %}
-                {{ input.default_value }}
+            {% if inp.default_value %}
+                {{ inp.default_value }}
             {% else %}
                 -
             {% endif %}
@@ -77,31 +77,31 @@
     </tr>
 {%- endmacro %}
 {# Linha de input struct com campos aninhados #}
-{% macro struct_input_row(input) %}
+{% macro struct_input_row(inp) %}
     <tr class="struct-row">
         <td>
             <details class="struct-details">
                 <summary>
-                    <code>{{ input.name }}</code>
-                    <span class="struct-info">({{ input.type.field_count }} field{{ 's' if input.type.field_count != 1 else '' }})</span>
+                    <code>{{ inp.name }}</code>
+                    <span class="struct-info">({{ inp.type.field_count }} field{{ 's' if inp.type.field_count != 1 else '' }})</span>
                 </summary>
             </details>
         </td>
         <td>
-            <code>{{ input.type }}</code>
+            <code>{{ inp.type }}</code>
         </td>
-        <td>{{ input.description or '-' }}</td>
+        <td>{{ inp.description or '-' }}</td>
         <td>
-            {% if input.default_value %}
-                {{ input.default_value }}
+            {% if inp.default_value %}
+                {{ inp.default_value }}
             {% else %}
                 -
             {% endif %}
         </td>
     </tr>
     {# Struct field rows - mostrados quando expandido #}
-    {% for field_name, field_type in input.type.struct_fields.items() %}
-        <tr class="struct-field-row" data-parent="{{ input.name }}">
+    {% for field_name, field_type in inp.type.struct_fields.items() %}
+        <tr class="struct-field-row" data-parent="{{ inp.name }}">
             <td class="struct-field-name">
                 <code>{{ field_name }}</code>
             </td>
