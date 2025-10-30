@@ -1,281 +1,51 @@
 {% extends "base.html" %}
-
+{% from "macros/badges.html" import external_badge, count_items %}
+{% from "components/stats.html" import stats_grid, stat_card, stat_card_highlighted %}
+{% from "components/tabs.html" import tabs_container, tab_button, tab_content, tab_notice %}
+{% from "components/docker_inventory.html" import docker_inventory_list %}
 {% block title %}Docker Inventory - WDL Documentation{% endblock %}
-
 {% block header %}Docker Inventory{% endblock %}
-
 {% block content %}
-<div class="card">
-    <h2>Overview</h2>
-    <div class="stats">
-        <div class="stat-card">
-            <div class="number">{{ total_repositories_internal }}</div>
-            <div class="label">Internal Repositories</div>
-        </div>
-        <div class="stat-card">
-            <div class="number">{{ total_images_internal }}</div>
-            <div class="label">Internal Images</div>
-        </div>
-        <div class="stat-card">
-            <div class="number">{{ total_usages_internal }}</div>
-            <div class="label">Internal Usages</div>
-        </div>
-        {% if has_external %}
-        <div class="stat-card" style="border-left: 3px solid var(--warning);">
-            <div class="number" style="color: var(--warning);">{{ total_repositories_external }}</div>
-            <div class="label">External Repositories</div>
-        </div>
-        <div class="stat-card" style="border-left: 3px solid var(--warning);">
-            <div class="number" style="color: var(--warning);">{{ total_images_external }}</div>
-            <div class="label">External Images</div>
-        </div>
-        <div class="stat-card" style="border-left: 3px solid var(--warning);">
-            <div class="number" style="color: var(--warning);">{{ total_usages_external }}</div>
-            <div class="label">External Usages</div>
-        </div>
-        {% endif %}
+    <div class="card">
+        <h2>Overview</h2>
+        {% call stats_grid() %}
+            {{ stat_card(total_repositories_internal, 'Internal Repositories') }}
+            {{ stat_card(total_images_internal, 'Internal Images') }}
+            {{ stat_card(total_usages_internal, 'Internal Usages') }}
+            {% if has_external %}
+                {{ stat_card_highlighted(total_repositories_external, 'External Repositories') }}
+                {{ stat_card_highlighted(total_images_external, 'External Images') }}
+                {{ stat_card_highlighted(total_usages_external, 'External Usages') }}
+            {% endif %}
+        {% endcall %}
     </div>
-</div>
-
-<div class="card">
-    <h2>🔍 Search Images</h2>
-    <div class="search-container">
-        <input 
-            type="text" 
-            id="dockerSearchBox" 
-            class="search-box" 
-            placeholder="Search by image name, repository, or task..."
-            autocomplete="off"
-        >
-        <span class="search-icon">🔍</span>
-    </div>
-</div>
-
-<!-- Tabs Navigation -->
-{% if has_external %}
-<div class="tabs-container">
-    <div class="tabs">
-        <button class="tab-button active" data-tab="internal" onclick="switchDockerTab('internal')">
-            <span class="tab-icon">📁</span>
-            <span class="tab-label">Internal</span>
-            <span class="tab-count">{{ total_repositories_internal }}</span>
-        </button>
-        <button class="tab-button" data-tab="external" onclick="switchDockerTab('external')">
-            <span class="tab-icon">📦</span>
-            <span class="tab-label">External</span>
-            <span class="tab-count">{{ total_repositories_external }}</span>
-        </button>
-    </div>
-</div>
-{% endif %}
-
-<!-- Internal Tab Content -->
-<div id="tab-internal" class="tab-content active">
-<div class="docker-inventory">
-    {% for repo_name, repo_data in repositories_internal.items() %}
-    {% set repo_index = loop.index0 %}
-    <div class="card docker-repository" data-repo="{{ repo_name }}">
-        <div class="repository-header">
-            <h2>
-                <span class="repo-icon">📦</span>
-                {{ repo_name }}
-                <span class="badge badge-count">{{ repo_data.image_count }} image{{ 's' if repo_data.image_count != 1 else '' }}</span>
-            </h2>
-        </div>
-        
-        <div class="docker-images-list">
-            {% for image_data in repo_data.images %}
-            {% set image_index = loop.index0 %}
-            {% set unique_id = "img_" ~ repo_index ~ "_" ~ image_index %}
-            <div class="docker-image-item" data-image="{{ image_data.full_name }}">
-                <div class="image-header" onclick="toggleImageDetails('{{ unique_id }}')">
-                    <div class="image-info">
-                        <span class="image-icon">🐳</span>
-                        <div class="image-details">
-                            <strong class="image-name">{{ image_data.name }}</strong>
-                            {% if image_data.tag %}
-                            <span class="image-tag">:{{ image_data.tag }}</span>
-                            {% endif %}
-                            {% if image_data.is_parameterized %}
-                            <span class="badge badge-warning">Parameterized</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="image-stats">
-                        <span class="task-count">{{ image_data.task_count }} task{{ 's' if image_data.task_count != 1 else '' }}</span>
-                        <span class="expand-icon" id="icon_{{ unique_id }}">▶</span>
-                    </div>
-                </div>
-                
-                <div class="image-tasks-container" id="tasks_{{ unique_id }}" style="display: none;">
-                    <div class="tasks-header">
-                        <h4>Tasks using this image:</h4>
-                    </div>
-                    <ul class="tasks-list">
-                        {% for task_info in image_data.tasks %}
-                        <li class="task-item">
-                            <a href="{{ task_info.workflow_url }}" class="task-link">
-                                <span class="task-name">{{ task_info.task_name }}</span>
-                                <span class="workflow-name">in {{ task_info.workflow_name }}</span>
-                            </a>
-                            <span class="file-path">{{ task_info.file_path }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            {% endfor %}
+    <div class="card">
+        <h2>🔍 Search Images</h2>
+        <div class="search-container">
+            <input type="text"
+                   id="dockerSearchBox"
+                   class="search-box"
+                   placeholder="Search by image name, repository, or task..."
+                   autocomplete="off">
+            <span class="search-icon">🔍</span>
         </div>
     </div>
-    {% endfor %}
-</div>
-</div>
-
-<!-- External Tab Content -->
-{% if has_external %}
-<div id="tab-external" class="tab-content">
-    <div class="card section external-section">
-        <div class="external-notice">
-            <span class="notice-icon">⚠️</span>
-            <div class="notice-content">
-                <strong>Third-Party Docker Images</strong>
-                <p>These Docker images are used by external workflows and tasks from third-party sources.</p>
-            </div>
-        </div>
-    </div>
-    
-<div class="docker-inventory">
-    {% for repo_name, repo_data in repositories_external.items() %}
-    {% set repo_index = loop.index0 + 1000 %}
-    <div class="card docker-repository" data-repo="{{ repo_name }}">
-        <div class="repository-header">
-            <h2>
-                <span class="repo-icon">📦</span>
-                {{ repo_name }}
-                <span class="badge badge-count">{{ repo_data.image_count }} image{{ 's' if repo_data.image_count != 1 else '' }}</span>
-                <span class="badge badge-external">EXTERNAL</span>
-            </h2>
-        </div>
-        
-        <div class="docker-images-list">
-            {% for image_data in repo_data.images %}
-            {% set image_index = loop.index0 %}
-            {% set unique_id = "img_" ~ repo_index ~ "_" ~ image_index %}
-            <div class="docker-image-item" data-image="{{ image_data.full_name }}">
-                <div class="image-header" onclick="toggleImageDetails('{{ unique_id }}')">
-                    <div class="image-info">
-                        <span class="image-icon">🐳</span>
-                        <div class="image-details">
-                            <strong class="image-name">{{ image_data.name }}</strong>
-                            {% if image_data.tag %}
-                            <span class="image-tag">:{{ image_data.tag }}</span>
-                            {% endif %}
-                            {% if image_data.is_parameterized %}
-                            <span class="badge badge-warning">Parameterized</span>
-                            {% if image_data.default_value %}
-                            <span class="badge badge-info" title="Default value used when parameter is not provided">Default: {{ image_data.default_value }}</span>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="image-stats">
-                        <span class="task-count">{{ image_data.task_count }} task{{ 's' if image_data.task_count != 1 else '' }}</span>
-                        <span class="expand-icon" id="icon_{{ unique_id }}">▶</span>
-                    </div>
-                </div>
-                
-                <div class="image-tasks-container" id="tasks_{{ unique_id }}" style="display: none;">
-                    <div class="tasks-header">
-                        <h4>Tasks using this image:</h4>
-                    </div>
-                    <ul class="tasks-list">
-                        {% for task_info in image_data.tasks %}
-                        <li class="task-item">
-                            <a href="{{ task_info.workflow_url }}" class="task-link">
-                                <span class="task-name">{{ task_info.task_name }}</span>
-                                <span class="workflow-name">in {{ task_info.workflow_name }}</span>
-                            </a>
-                            <span class="file-path">{{ task_info.file_path }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endfor %}
-</div>
-</div>
-{% endif %}
-
-<script>
-function toggleImageDetails(id) {
-    const container = document.getElementById('tasks_' + id);
-    const icon = document.getElementById('icon_' + id);
-    
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        icon.textContent = '▼';
-    } else {
-        container.style.display = 'none';
-        icon.textContent = '▶';
-    }
-}
-
-function switchDockerTab(tabName) {
-    // Hide all tab contents
-    document.querySelectorAll('#tab-internal, #tab-external').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Remove active class from all buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-    });
-    
-    // Show selected tab content
-    const selectedTab = document.getElementById('tab-' + tabName);
-    if (selectedTab) {
-        selectedTab.classList.add('active');
-    }
-    
-    // Add active class to clicked button
-    const selectedButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
-    if (selectedButton) {
-        selectedButton.classList.add('active');
-    }
-}
-
-// Search functionality
-document.getElementById('dockerSearchBox')?.addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const repositories = document.querySelectorAll('.docker-repository');
-    
-    repositories.forEach(repo => {
-        const images = repo.querySelectorAll('.docker-image-item');
-        let hasVisibleImage = false;
-        
-        images.forEach(image => {
-            const imageName = image.dataset.image.toLowerCase();
-            const tasks = Array.from(image.querySelectorAll('.task-name')).map(t => t.textContent.toLowerCase());
-            const workflows = Array.from(image.querySelectorAll('.workflow-name')).map(w => w.textContent.toLowerCase());
-            
-            const matches = imageName.includes(searchTerm) || 
-                          tasks.some(t => t.includes(searchTerm)) ||
-                          workflows.some(w => w.includes(searchTerm));
-            
-            if (matches) {
-                image.style.display = 'block';
-                hasVisibleImage = true;
-            } else {
-                image.style.display = 'none';
-            }
-        });
-        
-        // Show/hide repository based on whether it has visible images
-        repo.style.display = hasVisibleImage ? 'block' : 'none';
-    });
-});
-</script>
+    <!-- Tabs Navigation -->
+    {% if has_external %}
+        {% call tabs_container() %}
+            {{ tab_button('internal', '📁', 'Internal', total_repositories_internal, active=true, onclick_function='switchDockerTab') }}
+            {{ tab_button('external', '📦', 'External', total_repositories_external, onclick_function='switchDockerTab') }}
+        {% endcall %}
+    {% endif %}
+    <!-- Internal Tab Content -->
+    {% call tab_content('internal', active=true) %}
+        {{ docker_inventory_list(repositories_internal, repo_index_offset=0, is_external=false) }}
+    {% endcall %}
+    <!-- External Tab Content -->
+    {% if has_external %}
+        {% call tab_content('external') %}
+            {{ tab_notice('⚠️', 'Third-Party Docker Images', 'These Docker images are used by external workflows and tasks from third-party sources.') }}
+            {{ docker_inventory_list(repositories_external, repo_index_offset=1000, is_external=true) }}
+        {% endcall %}
+    {% endif %}
 {% endblock %}

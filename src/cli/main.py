@@ -10,7 +10,7 @@ from pathlib import Path
 
 from src.application.use_cases.generate_documentation import GenerateDocumentationUseCase
 from src.application.use_cases.generate_workflow_graph import GenerateWorkflowGraphUseCase
-from src.infrastructure import DocumentationGenerator, MiniwdlParser, DocumentRepository, AssetCopier
+from src.infrastructure import DocumentationGenerator, MiniwdlParser, DocumentRepository
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -67,11 +67,8 @@ def generate(root_path, output, exclude, external_dirs, verbose):
     repository = DocumentRepository(root_path, list(exclude), list(external_dirs))
     parser = MiniwdlParser(root_path, output_dir)
 
-    # Initialize asset copier
-    templates_dir = Path(__file__).parent.parent / "infrastructure" / "rendering" / "templates"
-    asset_copier = AssetCopier(templates_dir)
-
-    documentation_generator = DocumentationGenerator(output_dir, root_path, asset_copier)
+    # Initialize DocumentationGenerator
+    documentation_generator = DocumentationGenerator(output_dir, root_path)
 
     # Execute use case
     use_case = GenerateDocumentationUseCase(

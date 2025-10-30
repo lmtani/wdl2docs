@@ -64,6 +64,38 @@ wdl2doc graph workflow.wdl -o workflow_graph.md
 - 🔗 Cross-references between workflows and tasks
 - 📦 External dependency tracking
 
+## Viewing Generated Documentation
+
+⚠️ **Important**: The generated HTML documentation uses ES6 modules, which require a web server to work properly due to CORS restrictions.
+
+**You cannot simply open `index.html` directly in your browser** (using `file://` protocol). Instead, use one of these options:
+
+### Option 1: Built-in Server Script (Easiest)
+
+```bash
+python serve_docs.py
+# or specify a different port
+python serve_docs.py 8080
+```
+
+This will automatically:
+- Start a local HTTP server
+- Open your browser at the correct URL
+- Serve the documentation from the `docs/` directory
+
+### Option 2: Python HTTP Server
+
+```bash
+cd docs
+python -m http.server 8000
+```
+
+Then open: http://localhost:8000
+
+### Why is this necessary?
+
+Modern browsers enforce strict CORS (Cross-Origin Resource Sharing) policies for ES6 modules. When opening files directly (`file://` protocol), the browser blocks module imports for security reasons. A local HTTP server provides the necessary CORS headers to allow module loading.
+
 ## Development
 
 Run tests:

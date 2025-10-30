@@ -1,0 +1,34 @@
+{# Reusable tabs component #}
+{# Tabs container #}
+{% macro tabs_container() %}
+    <div class="tabs-container">
+        <div class="tabs">{{ caller() }}</div>
+    </div>
+{%- endmacro %}
+{# Individual tab button #}
+{% macro tab_button(id, icon, label, count, active=false, onclick_function='switchTab') %}
+    <button class="tab-button{% if active %} active{% endif %}"
+            data-tab="{{ id }}"
+            onclick="{{ onclick_function }}('{{ id }}')">
+        <span class="tab-icon">{{ icon }}</span>
+        <span class="tab-label">{{ label }}</span>
+        <span class="tab-count">{{ count }}</span>
+    </button>
+{%- endmacro %}
+{# Tab content #}
+{% macro tab_content(id, active=false) %}
+    <div id="tab-{{ id }}"
+         class="tab-content{% if active %} active{% endif %}">{{ caller() }}</div>
+{%- endmacro %}
+{# Notice inside tab #}
+{% macro tab_notice(icon, title, description) %}
+    <div class="card section external-section">
+        <div class="external-notice">
+            <span class="notice-icon">{{ icon }}</span>
+            <div class="notice-content">
+                <strong>{{ title }}</strong>
+                <p>{{ description }}</p>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

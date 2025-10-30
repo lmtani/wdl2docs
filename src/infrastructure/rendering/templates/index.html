@@ -1,52 +1,27 @@
 {% extends "base.html" %}
-
+{% from "macros/badges.html" import workflow_badge, task_badge, mixed_badge, external_badge, count_items %}
+{% from "components/stats.html" import stats_grid, stat_card, stat_card_highlighted, search_box %}
+{% from "components/tabs.html" import tabs_container, tab_button, tab_content, tab_notice %}
 {% block title %}WDL Documentation - Index{% endblock %}
-
 {% block header %}WDL Documentation{% endblock %}
-
 {% block content %}
-<div class="card">
-    <h2>Overview</h2>
-    <div class="stats">
-        <div class="stat-card">
-            <div class="number">{{ total_files }}</div>
-            <div class="label">Internal WDL Files</div>
-        </div>
-        <div class="stat-card">
-            <div class="number">{{ total_workflows }}</div>
-            <div class="label">Workflows</div>
-        </div>
-        <div class="stat-card">
-            <div class="number">{{ total_tasks }}</div>
-            <div class="label">Tasks</div>
-        </div>
-        {% if total_external > 0 %}
-        <div class="stat-card" style="border-left: 3px solid var(--warning);">
-            <div class="number" style="color: var(--warning);">{{ total_external }}</div>
-            <div class="label">External Files</div>
-        </div>
-        {% endif %}
+    <div class="card">
+        <h2>Overview</h2>
+        {% call stats_grid() %}
+            {{ stat_card(total_files, 'Internal WDL Files') }}
+            {{ stat_card(total_workflows, 'Workflows') }}
+            {{ stat_card(total_tasks, 'Tasks') }}
+            {% if total_external > 0 %}
+                {{ stat_card_highlighted(total_repositories_external if total_repositories_external is defined else total_external, 'External Files') }}
+            {% endif %}
+        {% endcall %}
     </div>
-</div>
-
-<div class="card">
-    <h2>🔍 Search</h2>
-    <div class="search-container">
-        <input 
-            type="text" 
-            id="searchBox" 
-            class="search-box" 
-            placeholder="Search workflows, tasks, or files... (e.g., 'alignment', 'variant calling')"
-            autocomplete="off"
-        >
-        <span class="search-icon">🔍</span>
+    <div class="card">
+        <h2>🔍 Search</h2>
+        {{ search_box('searchBox', "Search workflows, tasks, or files... (e.g., 'alignment', 'variant calling')") }}
     </div>
-    <div id="searchStats" class="search-stats"></div>
-    <div id="searchResults" class="search-results"></div>
-</div>
-
-<!-- Hidden search data -->
-<script id="searchDataInternal" type="application/json">
+    <!-- Hidden search data -->
+    <script id="searchDataInternal" type="application/json">
 [
     {% set internal_docs = documents | selectattr('is_external', 'equalto', False) | list %}
     {% for doc in internal_docs %}
@@ -60,9 +35,8 @@
     }{% if not loop.last %},{% endif %}
     {% endfor %}
 ]
-</script>
-
-<script id="searchDataExternal" type="application/json">
+    </script>
+    <script id="searchDataExternal" type="application/json">
 [
     {% set external_docs = documents | selectattr('is_external', 'equalto', True) | list %}
     {% for doc in external_docs %}
@@ -76,289 +50,242 @@
     }{% if not loop.last %},{% endif %}
     {% endfor %}
 ]
-</script>
-
-<!-- Tabs Navigation -->
-<div class="tabs-container">
-    <div class="tabs">
-        <button class="tab-button active" data-tab="internal" onclick="switchTab('internal')">
-            <span class="tab-icon">📁</span>
-            <span class="tab-label">Internal</span>
-            <span class="tab-count">{{ total_files }}</span>
-        </button>
-        {% if total_external > 0 %}
-        <button class="tab-button" data-tab="external" onclick="switchTab('external')">
-            <span class="tab-icon">📦</span>
-            <span class="tab-label">External</span>
-            <span class="tab-count">{{ total_external }}</span>
-        </button>
+    </script>
+    <!-- Tabs Navigation -->
+    {% call tabs_container() %}
+        {{ tab_button('internal', '📁', 'Internal', total_files, active=true) }}
+        {% if total_external > 0 %}{{ tab_button('external', '📦', 'External', total_external) }}{% endif %}
+        {% if total_errors > 0 %}{{ tab_button('errors', '⚠️', 'Errors & Warnings', total_errors) }}{% endif %}
+    {% endcall %}
+    <!-- Internal Tab Content -->
+    {% call tab_content('internal', active=true) %}
+        {% if workflows %}
+            <div class="card section">
+                <h2>Workflows</h2>
+                <p class="description">Main workflow files that orchestrate tasks and subworkflows.</p>
+                <ul class="file-list">
+                    {% for doc in workflows %}
+                        <li>
+                            {{ workflow_badge() }}
+                            <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+                                <strong>{{ doc.workflow.name }}</strong>
+                            </a>
+                            - <code>{{ doc.relative_path | normalize_path }}</code>
+                            {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
+                                <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
+                            {% endif %}
+                            {% if doc.workflow.description %}
+                                <br>
+                                <span class="description">{{ doc.workflow.description }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         {% endif %}
-        {% if total_errors > 0 %}
-        <button class="tab-button" data-tab="errors" onclick="switchTab('errors')">
-            <span class="tab-icon">⚠️</span>
-            <span class="tab-label">Errors & Warnings</span>
-            <span class="tab-count">{{ total_errors }}</span>
-        </button>
+        {% if mixed_files %}
+            <div class="card section">
+                <h2>Mixed Files (Workflow + Tasks)</h2>
+                <p class="description">Files containing both workflow definition and task implementations.</p>
+                <ul class="file-list">
+                    {% for doc in mixed_files %}
+                        <li>
+                            {{ mixed_badge() }}
+                            <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+                                <strong>{{ doc.workflow.name }}</strong>
+                            </a>
+                            - <code>{{ doc.relative_path | normalize_path }}</code>
+                            ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
+                            {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
+                                <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
+                            {% endif %}
+                            {% if doc.workflow.description %}
+                                <br>
+                                <span class="description">{{ doc.workflow.description }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         {% endif %}
-    </div>
-</div>
-
-<!-- Internal Tab Content -->
-<div id="tab-internal" class="tab-content active">
-    {% if workflows %}
-    <div class="card section">
-        <h2>Workflows</h2>
-        <p class="description">Main workflow files that orchestrate tasks and subworkflows.</p>
-        <ul class="file-list">
-            {% for doc in workflows %}
-            <li>
-                <span class="badge badge-workflow">WORKFLOW</span>
-                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
-                    <strong>{{ doc.workflow.name }}</strong>
-                </a>
-                - <code>{{ doc.relative_path | normalize_path }}</code>
-                {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
-                <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
-                {% endif %}
-                {% if doc.workflow.description %}
-                <br>
-                <span class="description">{{ doc.workflow.description }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
-    {% if mixed_files %}
-    <div class="card section">
-        <h2>Mixed Files (Workflow + Tasks)</h2>
-        <p class="description">Files containing both workflow definition and task implementations.</p>
-        <ul class="file-list">
-            {% for doc in mixed_files %}
-            <li>
-                <span class="badge badge-mixed">MIXED</span>
-                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
-                    <strong>{{ doc.workflow.name }}</strong>
-                </a>
-                - <code>{{ doc.relative_path | normalize_path }}</code>
-                ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
-                {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
-                <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
-                {% endif %}
-                {% if doc.workflow.description %}
-                <br>
-                <span class="description">{{ doc.workflow.description }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
-    {% if task_files %}
-    <div class="card section">
-        <h2>Task Libraries</h2>
-        <p class="description">Files containing reusable tasks.</p>
-        <ul class="file-list">
-            {% for doc in task_files %}
-            <li>
-                <span class="badge badge-task">TASKS</span>
-                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
-                    <strong>{{ doc.name }}</strong>
-                </a>
-                - <code>{{ doc.relative_path | normalize_path }}</code>
-                ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
-                {% if doc.description %}
-                <br>
-                <span class="description">{{ doc.description }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-</div>
-
-<!-- External Tab Content -->
-{% if total_external > 0 %}
-<div id="tab-external" class="tab-content">
-    <div class="card section external-section">
-        <div class="external-notice">
-            <span class="notice-icon">⚠️</span>
-            <div class="notice-content">
-                <strong>Third-Party Resources</strong>
-                <p>These are external workflows and tasks from third-party sources. They are used as-is and not modified by this project.</p>
+        {% if task_files %}
+            <div class="card section">
+                <h2>Task Libraries</h2>
+                <p class="description">Files containing reusable tasks.</p>
+                <ul class="file-list">
+                    {% for doc in task_files %}
+                        <li>
+                            {{ task_badge() }}
+                            <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+                                <strong>{{ doc.name }}</strong>
+                            </a>
+                            - <code>{{ doc.relative_path | normalize_path }}</code>
+                            ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
+                            {% if doc.description %}
+                                <br>
+                                <span class="description">{{ doc.description }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
-        </div>
-    </div>
-    
-    {% if external_workflows %}
-    <div class="card section">
-        <h2>External Workflows</h2>
-        <p class="description">Workflow files from external dependencies.</p>
-        <ul class="file-list">
-            {% for doc in external_workflows %}
-            <li>
-                <span class="badge badge-workflow">WORKFLOW</span>
-                <span class="badge badge-external">EXTERNAL</span>
-                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
-                    <strong>{{ doc.workflow.name }}</strong>
-                </a>
-                - <code>{{ doc.relative_path | normalize_path }}</code>
-                {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
-                <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
-                {% endif %}
-                {% if doc.workflow.description %}
-                <br>
-                <span class="description">{{ doc.workflow.description }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-    
-    {% if external_mixed %}
-    <div class="card section">
-        <h2>External Mixed Files</h2>
-        <p class="description">External files containing both workflows and tasks.</p>
-        <ul class="file-list">
-            {% for doc in external_mixed %}
-            <li>
-                <span class="badge badge-mixed">MIXED</span>
-                <span class="badge badge-external">EXTERNAL</span>
-                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
-                    <strong>{{ doc.workflow.name }}</strong>
-                </a>
-                - <code>{{ doc.relative_path | normalize_path }}</code>
-                ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
-                {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
-                <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
-                {% endif %}
-                {% if doc.workflow.description %}
-                <br>
-                <span class="description">{{ doc.workflow.description }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-    
-    {% if external_tasks %}
-    <div class="card section">
-        <h2>External Task Libraries</h2>
-        <p class="description">Task-only files from external dependencies.</p>
-        <ul class="file-list">
-            {% for doc in external_tasks %}
-            <li>
-                <span class="badge badge-task">TASKS</span>
-                <span class="badge badge-external">EXTERNAL</span>
-                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
-                    <strong>{{ doc.name }}</strong>
-                </a>
-                - <code>{{ doc.relative_path | normalize_path }}</code>
-                ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
-                {% if doc.description %}
-                <br>
-                <span class="description">{{ doc.description }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
-
-<!-- Errors & Warnings Tab Content -->
-{% if total_errors > 0 %}
-<div id="tab-errors" class="tab-content">
-    <div class="card section">
-        <div class="error-notice">
-            <span class="notice-icon">⚠️</span>
-            <div class="notice-content">
-                <strong>Parsing Issues</strong>
-                <p>The following errors and warnings were encountered while generating documentation. These files may have syntax errors or incompatibilities.</p>
-            </div>
-        </div>
-    </div>
-
-    {% if syntax_errors %}
-    <div class="card section">
-        <h2>🔴 Syntax Errors ({{ syntax_errors|length }})</h2>
-        <p class="description">WDL files that failed to parse due to syntax errors.</p>
-        
-        <div class="error-list">
-            {% for error in syntax_errors %}
-            <div class="error-item syntax-error">
-                <div class="error-header">
-                    <span class="badge badge-error">SYNTAX ERROR</span>
-                    <code class="error-file">{{ error.relative_path | normalize_path }}</code>
+        {% endif %}
+    {% endcall %}
+    <!-- External Tab Content -->
+    {% if total_external > 0 %}
+        {% call tab_content('external') %}
+            {{ tab_notice('⚠️', 'Third-Party Resources', 'These are external workflows and tasks from third-party sources. They are used as-is and not modified by this project.') }}
+            {% if external_workflows %}
+                <div class="card section">
+                    <h2>External Workflows</h2>
+                    <p class="description">Workflow files from external dependencies.</p>
+                    <ul class="file-list">
+                        {% for doc in external_workflows %}
+                            <li>
+                                {{ workflow_badge() }}
+                                {{ external_badge() }}
+                                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+                                    <strong>{{ doc.workflow.name }}</strong>
+                                </a>
+                                - <code>{{ doc.relative_path | normalize_path }}</code>
+                                {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
+                                    <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
+                                {% endif %}
+                                {% if doc.workflow.description %}
+                                    <br>
+                                    <span class="description">{{ doc.workflow.description }}</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                
-                {% if error.location_info %}
-                <div class="error-location">
-                    <span class="location-icon">📍</span>
-                    {{ error.location_info }}
+            {% endif %}
+            {% if external_mixed %}
+                <div class="card section">
+                    <h2>External Mixed Files</h2>
+                    <p class="description">External files containing both workflows and tasks.</p>
+                    <ul class="file-list">
+                        {% for doc in external_mixed %}
+                            <li>
+                                {{ mixed_badge() }}
+                                {{ external_badge() }}
+                                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+                                    <strong>{{ doc.workflow.name }}</strong>
+                                </a>
+                                - <code>{{ doc.relative_path | normalize_path }}</code>
+                                ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
+                                {% if workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
+                                    <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
+                                {% endif %}
+                                {% if doc.workflow.description %}
+                                    <br>
+                                    <span class="description">{{ doc.workflow.description }}</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                {% endif %}
-                
-                <div class="error-message">
-                    <pre>{{ error.error_message }}</pre>
+            {% endif %}
+            {% if external_tasks %}
+                <div class="card section">
+                    <h2>External Task Libraries</h2>
+                    <p class="description">Task-only files from external dependencies.</p>
+                    <ul class="file-list">
+                        {% for doc in external_tasks %}
+                            <li>
+                                {{ task_badge() }}
+                                {{ external_badge() }}
+                                <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+                                    <strong>{{ doc.name }}</strong>
+                                </a>
+                                - <code>{{ doc.relative_path | normalize_path }}</code>
+                                ({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }})
+                                {% if doc.description %}
+                                    <br>
+                                    <span class="description">{{ doc.description }}</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endcall %}
+    {% endif %}
+    <!-- Errors & Warnings Tab Content -->
+    {% if total_errors > 0 %}
+        {% call tab_content('errors') %}
+            <div class="card section">
+                <div class="error-notice">
+                    <span class="notice-icon">⚠️</span>
+                    <div class="notice-content">
+                        <strong>Parsing Issues</strong>
+                        <p>
+                            The following errors and warnings were encountered while generating documentation. These files may have syntax errors or incompatibilities.
+                        </p>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-    </div>
+            {% if syntax_errors %}
+                <div class="card section">
+                    <h2>🔴 Syntax Errors ({{ syntax_errors|length }})</h2>
+                    <p class="description">WDL files that failed to parse due to syntax errors.</p>
+                    <div class="error-list">
+                        {% for error in syntax_errors %}
+                            <div class="error-item syntax-error">
+                                <div class="error-header">
+                                    <span class="badge badge-error">SYNTAX ERROR</span>
+                                    <code class="error-file">{{ error.relative_path | normalize_path }}</code>
+                                </div>
+                                {% if error.location_info %}
+                                    <div class="error-location">
+                                        <span class="location-icon">📍</span>
+                                        {{ error.location_info }}
+                                    </div>
+                                {% endif %}
+                                <div class="error-message">
+                                    <pre>{{ error.error_message }}</pre>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if other_errors %}
+                <div class="card section">
+                    <h2>🔴 Other Errors ({{ other_errors|length }})</h2>
+                    <p class="description">Files that encountered errors during processing.</p>
+                    <div class="error-list">
+                        {% for error in other_errors %}
+                            <div class="error-item other-error">
+                                <div class="error-header">
+                                    <span class="badge badge-error">{{ error.error_type }}</span>
+                                    <code class="error-file">{{ error.relative_path | normalize_path }}</code>
+                                </div>
+                                <div class="error-message">
+                                    <pre>{{ error.error_message }}</pre>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if warnings %}
+                <div class="card section">
+                    <h2>⚠️ Warnings ({{ warnings|length }})</h2>
+                    <p class="description">Non-critical issues that may affect documentation quality.</p>
+                    <div class="error-list">
+                        {% for warning in warnings %}
+                            <div class="error-item warning-item">
+                                <div class="error-header">
+                                    <span class="badge badge-warning">WARNING</span>
+                                    <code class="error-file">{{ warning.relative_path | normalize_path }}</code>
+                                </div>
+                                <div class="error-message">{{ warning.error_message }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endcall %}
     {% endif %}
-
-    {% if other_errors %}
-    <div class="card section">
-        <h2>🔴 Other Errors ({{ other_errors|length }})</h2>
-        <p class="description">Files that encountered errors during processing.</p>
-        
-        <div class="error-list">
-            {% for error in other_errors %}
-            <div class="error-item other-error">
-                <div class="error-header">
-                    <span class="badge badge-error">{{ error.error_type }}</span>
-                    <code class="error-file">{{ error.relative_path | normalize_path }}</code>
-                </div>
-                
-                <div class="error-message">
-                    <pre>{{ error.error_message }}</pre>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% if warnings %}
-    <div class="card section">
-        <h2>⚠️ Warnings ({{ warnings|length }})</h2>
-        <p class="description">Non-critical issues that may affect documentation quality.</p>
-        
-        <div class="error-list">
-            {% for warning in warnings %}
-            <div class="error-item warning-item">
-                <div class="error-header">
-                    <span class="badge badge-warning">WARNING</span>
-                    <code class="error-file">{{ warning.relative_path | normalize_path }}</code>
-                </div>
-                
-                <div class="error-message">
-                    {{ warning.error_message }}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
-
 {% endblock %}
-

@@ -1,0 +1,236 @@
+{# Macros for rendering tables consistently #}
+{# Input table for workflow or task, supports structs and defaults #}
+{% macro inputs_table(inputs) %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Default</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# Separate inputs into categories #}
+                {% set struct_inputs = [] %}
+                {% set regular_inputs = [] %}
+                {% set default_inputs = [] %}
+                {% for inp in inputs %}
+                    {% if inp.is_struct %}
+                        {% set _ = struct_inputs.append(inp) %}
+                    {% elif inp.has_default %}
+                        {% set _ = default_inputs.append(inp) %}
+                    {% else %}
+                        {% set _ = regular_inputs.append(inp) %}
+                    {% endif %}
+                {% endfor %}
+                {# Render struct inputs first #}
+                {% for inp in struct_inputs %}{{ struct_input_row(inp) }}{% endfor %}
+                {# Render required inputs #}
+                {% for inp in regular_inputs %}{{ input_row(inp) }}{% endfor %}
+                {# Render optional inputs (with defaults) - collapsed #}
+                {% if default_inputs %}
+                    <tr class="default-inputs-row">
+                        <td colspan="4">
+                            <details class="default-inputs-details">
+                                <summary>
+                                    <span class="default-inputs-info">{{ default_inputs|length }} optional input{{ 's' if default_inputs|length != 1 else '' }} with default value{{ 's' if default_inputs|length != 1 else '' }}</span>
+                                </summary>
+                            </details>
+                        </td>
+                    </tr>
+                    {% for inp in default_inputs %}
+                        <tr class="default-input-row" style="display: none;">
+                            <td>
+                                <code>{{ inp.name }}</code>
+                            </td>
+                            <td>
+                                <code>{{ inp.type }}</code>
+                            </td>
+                            <td>{{ inp.description or '-' }}</td>
+                            <td>{{ inp.default_value }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+{%- endmacro %}
+{# Simple input row #}
+{% macro input_row(inp) %}
+    <tr>
+        <td>
+            <code>{{ inp.name }}</code>
+        </td>
+        <td>
+            <code>{{ inp.type }}</code>
+        </td>
+        <td>{{ inp.description or '-' }}</td>
+        <td>
+            {% if inp.default_value %}
+                {{ inp.default_value }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+    </tr>
+{%- endmacro %}
+{# Struct input row with nested fields #}
+{% macro struct_input_row(inp) %}
+    <tr class="struct-row">
+        <td>
+            <details class="struct-details">
+                <summary>
+                    <code>{{ inp.name }}</code>
+                    <span class="struct-info">({{ inp.type.field_count }} field{{ 's' if inp.type.field_count != 1 else '' }})</span>
+                </summary>
+            </details>
+        </td>
+        <td>
+            <code>{{ inp.type }}</code>
+        </td>
+        <td>{{ inp.description or '-' }}</td>
+        <td>
+            {% if inp.default_value %}
+                {{ inp.default_value }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+    </tr>
+    {# Struct field rows - shown when expanded #}
+    {% for field_name, field_type in inp.type.struct_fields.items() %}
+        <tr class="struct-field-row" data-parent="{{ inp.name }}">
+            <td class="struct-field-name">
+                <code>{{ field_name }}</code>
+            </td>
+            <td>
+                <code>{{ field_type }}</code>
+            </td>
+            <td>-</td>
+            <td>-</td>
+        </tr>
+    {% endfor %}
+{%- endmacro %}
+{# Outputs table #}
+{% macro outputs_table(outputs) %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Expression</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for output in outputs %}
+                    <tr>
+                        <td>
+                            <code>{{ output.name }}</code>
+                        </td>
+                        <td>
+                            <code>{{ output.type }}</code>
+                        </td>
+                        <td>
+                            <code>{{ output.expression or '-' }}</code>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{%- endmacro %}
+{# Runtime table #}
+{% macro runtime_table(runtime_dict) %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key, value in runtime_dict.items() %}
+                    <tr>
+                        <td>
+                            <code>{{ key }}</code>
+                        </td>
+                        <td>
+                            <code>{{ value }}</code>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{%- endmacro %}
+{# Imports table #}
+{% macro imports_table(imports) %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Namespace</th>
+                    <th>Path</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for imp in imports %}
+                    <tr>
+                        <td>
+                            <code>{{ imp.namespace or '-' }}</code>
+                        </td>
+                        <td>
+                            <code>{{ imp.path }}</code>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{%- endmacro %}
+{# Generic two-column table #}
+{% macro two_column_table(rows, header1='Key', header2='Value') %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>{{ header1 }}</th>
+                    <th>{{ header2 }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{%- endmacro %}
+{# Document info table #}
+{% macro document_info_table(doc) %}
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th style="width: 150px;">File Path</th>
+                <td>
+                    <code>{{ doc.relative_path }}</code>
+                </td>
+            </tr>
+            <tr>
+                <th>WDL Version</th>
+                <td>{{ doc.version }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{ doc.document_type }}</td>
+            </tr>
+        </table>
+    </div>
+{%- endmacro %}

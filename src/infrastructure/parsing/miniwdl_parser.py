@@ -15,7 +15,7 @@ from src.domain.errors import ParseError
 from src.infrastructure.parsing.loader import Loader
 from src.infrastructure.parsing.ast_mapper import AstMapper
 from src.infrastructure.parsing.analyzer import Analyzer
-from src.infrastructure.parsing.path_resolver import PathResolver
+from src.infrastructure.shared.path_resolver import PathResolver
 
 
 class MiniwdlParser:

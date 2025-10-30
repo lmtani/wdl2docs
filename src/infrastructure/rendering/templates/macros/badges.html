@@ -1,0 +1,46 @@
+{# Macro to render badges consistently #}
+{# Basic badge with type #}
+{% macro badge(type, text=None) %}
+    <span class="badge badge-{{ type }}">{{ text or type | upper }}</span>
+{%- endmacro %}
+{# Specific badges by document type #}
+{% macro workflow_badge() %}
+    {{ badge('workflow', 'WORKFLOW') }}
+{%- endmacro %}
+{% macro task_badge() %}
+    {{ badge('task', 'TASKS') if caller is not defined else badge('task', 'TASK') }}
+{%- endmacro %}
+{% macro mixed_badge() %}
+    {{ badge('mixed', 'MIXED') }}
+{%- endmacro %}
+{% macro file_badge() %}
+    {{ badge('file', 'FILE') }}
+{%- endmacro %}
+{% macro external_badge() %}
+    {{ badge('external', 'EXTERNAL') }}
+{%- endmacro %}
+{% macro call_badge() %}
+    {{ badge('call', 'CALL') }}
+{%- endmacro %}
+{% macro error_badge() %}
+    {{ badge('error', 'SYNTAX ERROR') }}
+{%- endmacro %}
+{% macro warning_badge() %}
+    {{ badge('warning', 'WARNING') }}
+{%- endmacro %}
+{% macro count_badge(count) %}
+    <span class="badge badge-count">{{ count }} {{ caller() if caller is defined else 'items' }}</span>
+{%- endmacro %}
+{# Badge with counter and pluralization #}
+{% macro count_items(count, singular, plural=None) %}
+    <span class="badge badge-count">{{ count }} {{ singular if count == 1 else (plural or singular + 's') }}</span>
+{%- endmacro %}
+{# Parameterized badge for Docker images #}
+{% macro parameterized_badge() %}
+    <span class="badge badge-warning">Parameterized</span>
+{%- endmacro %}
+{# Informative badge #}
+{% macro info_badge(text) %}
+    <span class="badge badge-info"
+          title="{{ caller() if caller is defined else '' }}">{{ text }}</span>
+{%- endmacro %}

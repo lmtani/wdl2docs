@@ -1,0 +1,36 @@
+{# Macros to render lists of WDL documents/files #}
+{% from "macros/badges.html" import workflow_badge, task_badge, mixed_badge, external_badge, count_items %}
+{# WDL file list #}
+{% macro file_list(title, description, files, badge_macro, extra_info=none, caller=none) %}
+    <div class="card section">
+        <h2>{{ title }}</h2>
+        <p class="description">{{ description }}</p>
+        <ul class="file-list">
+            {% for file in files %}
+                <li>
+                    {{ badge_macro() }}
+                    {% if caller %}
+                        {{ caller(file) }}
+                    {% else %}
+                        {{ default_file_item(file, extra_info) }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{%- endmacro %}
+{# Default file item #}
+{% macro default_file_item(doc, workflow_caller_counts=none) %}
+    <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
+        <strong>{{ doc.workflow.name if doc.has_workflow else doc.name }}</strong>
+    </a>
+    - <code>{{ doc.relative_path | normalize_path }}</code>
+    {% if doc.has_tasks %}({{ doc.tasks|length }} task{{ 's' if doc.tasks|length != 1 else '' }}){% endif %}
+    {% if workflow_caller_counts and doc.has_workflow and workflow_caller_counts.get(doc.workflow.name, 0) > 0 %}
+        <span style="color: #a371f7; font-weight: 500;">(used by {{ workflow_caller_counts[doc.workflow.name] }} workflow{{ 's' if workflow_caller_counts[doc.workflow.name] != 1 else '' }})</span>
+    {% endif %}
+    {% if doc.workflow.description if doc.has_workflow else doc.description %}
+        <br>
+        <span class="description">{{ doc.workflow.description if doc.has_workflow else doc.description }}</span>
+    {% endif %}
+{%- endmacro %}

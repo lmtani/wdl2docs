@@ -129,19 +129,6 @@ class FakeHtmlGenerator:
         return Path("/fake/output/docker_images.html")
 
 
-class FakeAssetCopier:
-    """Fake AssetCopier for testing."""
-
-    def __init__(self):
-        self.copied = False
-        self.copy_target = None
-
-    def copy_static_assets(self, output_dir: Path) -> None:
-        """Record static assets copy."""
-        self.copied = True
-        self.copy_target = output_dir
-
-
 class FakeDocumentationGenerator:
     """Fake DocumentationGenerator that implements DocumentationGeneratorPort."""
 
@@ -187,12 +174,6 @@ def fake_parser():
 def fake_html_generator():
     """Create fake HTML generator."""
     return FakeHtmlGenerator()
-
-
-@pytest.fixture
-def fake_asset_copier():
-    """Create fake asset copier."""
-    return FakeAssetCopier()
 
 
 @pytest.fixture

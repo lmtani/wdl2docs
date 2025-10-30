@@ -10,12 +10,10 @@ Contains implementations for external interactions and technical concerns:
 
 from src.infrastructure.parsing import MiniwdlParser
 from src.infrastructure.fs import DocumentRepository
-from src.infrastructure.templating import AssetCopier
 from src.infrastructure.rendering import DocumentationGenerator
 
 __all__ = [
     "MiniwdlParser",
     "DocumentRepository",
-    "AssetCopier",
     "DocumentationGenerator",
 ]
