@@ -1,12 +1,12 @@
-{# Componente de inventário Docker reutilizável #}
+{# Reusable Docker inventory component #}
 {% from "macros/badges.html" import external_badge, count_items %}
-{# 
-Renderiza uma lista de repositórios Docker com suas imagens e tasks associadas.
+{#
+Renders a list of Docker repositories with their images and associated tasks.
 
-Parâmetros:
-- repositories: dicionário de repositórios {repo_name: {image_count, images}}
-- repo_index_offset: offset para IDs únicos (padrão: 0, usar 1000+ para external)
-- is_external: boolean para mostrar badge de external (padrão: false)
+Parameters:
+- repositories: dictionary of repositories {repo_name: {image_count, images}}
+- repo_index_offset: offset for unique IDs (default: 0, use 1000+ for external)
+- is_external: boolean to show external badge (default: false)
 #}
 {% macro docker_inventory_list(repositories, repo_index_offset=0, is_external=false) %}
     <div class="docker-inventory">

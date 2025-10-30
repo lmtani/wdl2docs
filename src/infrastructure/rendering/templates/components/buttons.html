@@ -1,5 +1,5 @@
-{# Componentes de botões de ação reutilizáveis #}
-{# Botão para visualizar gráfico #}
+{# Reusable action button components #}
+{# Button to view workflow graph #}
 {% macro graph_button() %}
     <button onclick="openGraphModal()"
             class="btn-graph"
@@ -19,7 +19,7 @@
         View Graph
     </button>
 {%- endmacro %}
-{# Botão para visualizar código fonte #}
+{# Button to view WDL source code #}
 {% macro source_button() %}
     <button onclick="openSourceModal()"
             class="btn-source"
@@ -36,7 +36,7 @@
         View Source
     </button>
 {%- endmacro %}
-{# Container de botões de ação #}
+{# Action buttons container #}
 {% macro action_buttons() %}
     <div style="display: flex; gap: 10px;">{{ caller() }}</div>
 {%- endmacro %}

@@ -1,6 +1,6 @@
-{# Macros para renderizar listas de documentos/arquivos WDL #}
+{# Macros to render lists of WDL documents/files #}
 {% from "macros/badges.html" import workflow_badge, task_badge, mixed_badge, external_badge, count_items %}
-{# Lista de arquivos WDL #}
+{# WDL file list #}
 {% macro file_list(title, description, files, badge_macro, extra_info=none, caller=none) %}
     <div class="card section">
         <h2>{{ title }}</h2>
@@ -19,7 +19,7 @@
         </ul>
     </div>
 {%- endmacro %}
-{# Item de arquivo padrão #}
+{# Default file item #}
 {% macro default_file_item(doc, workflow_caller_counts=none) %}
     <a href="{{ doc.relative_path | normalize_path | replace('.wdl', '.html') }}">
         <strong>{{ doc.workflow.name if doc.has_workflow else doc.name }}</strong>

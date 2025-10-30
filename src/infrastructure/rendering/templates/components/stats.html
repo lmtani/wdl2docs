@@ -1,20 +1,20 @@
-{# Componente de estatísticas reutilizável #}
-{# Grid de estatísticas com cards #}
+{# Reusable statistics component #}
+{# Statistics grid with cards #}
 {% macro stats_grid() %}
     <div class="stats">{{ caller() }}</div>
 {%- endmacro %}
-{# Card individual de estatística #}
+{# Individual statistics card #}
 {% macro stat_card(number, label, style='') %}
     <div class="stat-card" {% if style %}style="{{ style }}"{% endif %}>
         <div class="number">{{ number }}</div>
         <div class="label">{{ label }}</div>
     </div>
 {%- endmacro %}
-{# Card de estatística com destaque (warning/error) #}
+{# Highlighted statistics card (warning/error) #}
 {% macro stat_card_highlighted(number, label, color='var(--warning)') %}
     {{ stat_card(number, label, 'border-left: 3px solid ' ~ color ~ ';') }}
 {%- endmacro %}
-{# Componente de busca reutilizável #}
+{# Reusable search box component #}
 {% macro search_box(id, placeholder) %}
     <div class="search-container">
         <input type="text"

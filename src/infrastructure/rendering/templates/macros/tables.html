@@ -1,5 +1,5 @@
-{# Macros para renderizar tabelas de forma consistente #}
-{# Tabela de inputs de workflow ou task com suporte a structs e defaults #}
+{# Macros for rendering tables consistently #}
+{# Input table for workflow or task, supports structs and defaults #}
 {% macro inputs_table(inputs) %}
     <div class="table-wrapper">
         <table>
@@ -12,7 +12,7 @@
                 </tr>
             </thead>
             <tbody>
-                {# Separar inputs em categorias #}
+                {# Separate inputs into categories #}
                 {% set struct_inputs = [] %}
                 {% set regular_inputs = [] %}
                 {% set default_inputs = [] %}
@@ -25,11 +25,11 @@
                         {% set _ = regular_inputs.append(inp) %}
                     {% endif %}
                 {% endfor %}
-                {# Renderizar struct inputs primeiro #}
+                {# Render struct inputs first #}
                 {% for inp in struct_inputs %}{{ struct_input_row(inp) }}{% endfor %}
-                {# Renderizar inputs obrigatórios #}
+                {# Render required inputs #}
                 {% for inp in regular_inputs %}{{ input_row(inp) }}{% endfor %}
-                {# Renderizar inputs opcionais (com defaults) - colapsados #}
+                {# Render optional inputs (with defaults) - collapsed #}
                 {% if default_inputs %}
                     <tr class="default-inputs-row">
                         <td colspan="4">
@@ -57,7 +57,7 @@
         </table>
     </div>
 {%- endmacro %}
-{# Linha de input simples #}
+{# Simple input row #}
 {% macro input_row(inp) %}
     <tr>
         <td>
@@ -76,7 +76,7 @@
         </td>
     </tr>
 {%- endmacro %}
-{# Linha de input struct com campos aninhados #}
+{# Struct input row with nested fields #}
 {% macro struct_input_row(inp) %}
     <tr class="struct-row">
         <td>
@@ -99,7 +99,7 @@
             {% endif %}
         </td>
     </tr>
-    {# Struct field rows - mostrados quando expandido #}
+    {# Struct field rows - shown when expanded #}
     {% for field_name, field_type in inp.type.struct_fields.items() %}
         <tr class="struct-field-row" data-parent="{{ inp.name }}">
             <td class="struct-field-name">
@@ -113,7 +113,7 @@
         </tr>
     {% endfor %}
 {%- endmacro %}
-{# Tabela de outputs #}
+{# Outputs table #}
 {% macro outputs_table(outputs) %}
     <div class="table-wrapper">
         <table>
@@ -142,7 +142,7 @@
         </table>
     </div>
 {%- endmacro %}
-{# Tabela de runtime #}
+{# Runtime table #}
 {% macro runtime_table(runtime_dict) %}
     <div class="table-wrapper">
         <table>
@@ -167,7 +167,7 @@
         </table>
     </div>
 {%- endmacro %}
-{# Tabela de imports #}
+{# Imports table #}
 {% macro imports_table(imports) %}
     <div class="table-wrapper">
         <table>
@@ -192,7 +192,7 @@
         </table>
     </div>
 {%- endmacro %}
-{# Tabela genérica de 2 colunas #}
+{# Generic two-column table #}
 {% macro two_column_table(rows, header1='Key', header2='Value') %}
     <div class="table-wrapper">
         <table>
@@ -213,7 +213,7 @@
         </table>
     </div>
 {%- endmacro %}
-{# Tabela de informações do documento #}
+{# Document info table #}
 {% macro document_info_table(doc) %}
     <div class="table-wrapper">
         <table>
