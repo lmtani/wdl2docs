@@ -27,19 +27,19 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout wdl2docs
+      - name: Checkout wdlatlas
         uses: actions/checkout@v4
         with:
-          path: wdl2docs
+          path: wdlatlas
       
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       
-      - name: Install wdl2docs
+      - name: Install wdlatlas
         run: |
-          cd wdl2docs
+          cd wdlatlas
           pip install -e .
       
       - name: Clone target repository
@@ -51,7 +51,7 @@ jobs:
       - name: Generate documentation
         run: |
           mkdir -p docs-output
-          wdl2doc generate target-repo -o docs-output
+          wdlatlas generate target-repo -o docs-output
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

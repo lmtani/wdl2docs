@@ -14,8 +14,8 @@ COPY src/ ./src/
 # Install dependencies using uv
 RUN uv pip install --system --no-cache -e .
 
-# Set the entrypoint to the wdl2doc command
-ENTRYPOINT ["wdl2doc"]
+# Set the entrypoint to the wdlatlas command
+ENTRYPOINT ["wdlatlas"]
 
 # Default command shows help
 CMD ["--help"]

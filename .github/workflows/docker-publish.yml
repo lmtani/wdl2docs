@@ -21,7 +21,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/wdl2docs
+          images: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/wdlatlas
           tags: |
             type=ref,event=branch,enable=${{ github.ref == 'refs/heads/main' }},suffix=-{{sha}}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}

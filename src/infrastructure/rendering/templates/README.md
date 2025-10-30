@@ -1,6 +1,8 @@
 # Template Organization
 
-Este documento descreve a organização dos templates Jinja2 do projeto wdl2docs.
+# Templates Jinja2
+
+Este documento descreve a organização dos templates Jinja2 do projeto WDL Atlas.
 
 ## Estrutura de Diretórios
 

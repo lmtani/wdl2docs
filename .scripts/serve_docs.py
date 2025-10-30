@@ -28,7 +28,7 @@ def main():
     docs_dir = Path(__file__).parent.parent / "docs"
     if not docs_dir.exists():
         print(f"❌ Error: Documentation directory not found at {docs_dir}")
-        print("   Please run 'wdl2doc generate' first to generate the documentation.")
+        print("   Please run 'wdlatlas generate' first to generate the documentation.")
         sys.exit(1)
 
     # Change to docs directory

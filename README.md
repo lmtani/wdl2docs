@@ -1,6 +1,6 @@
-# WDL2Doc
+# WDL Atlas
 
-Generate documentation and visual diagrams for WDL (Workflow Description Language) files.
+Explore and visualize your WDL (Workflow Description Language) workflows
 
 ![Python](https://img.shields.io/badge/python-3.13-green)
 ![WDL](https://img.shields.io/badge/WDL-blue)
@@ -27,25 +27,25 @@ mkdir output
 docker run  --user $(id -u):$(id -g) --rm \
             -v /path/to/wdl-project:/data \
             -v $(pwd)/output:/output \
-            taniguti/wdl2docs:0.1.0 generate /data -o /output
+            taniguti/wdlatlas:0.1.0 generate /data -o /output
 
 # Generate graph
 docker run  --user $(id -u):$(id -g) --rm \
             -v /path/to/wdl-project:/data \
             -v $(pwd)/output:/output \
-            taniguti/wdl2docs:0.1.0 graph /data/workflow.wdl -o /output/graph.md
+            taniguti/wdlatlas:0.1.0 graph /data/workflow.wdl -o /output/graph.md
 ```
 
 ## Usage
 
-WDL2Doc provides two main commands:
+WDL Atlas provides two main commands:
 
 ### 1. Generate HTML Documentation
 
 Generate complete HTML documentation for your WDL project:
 
 ```bash
-wdl2doc generate /path/to/wdl-project -o docs/
+wdlatlas generate /path/to/wdl-project -o docs/
 ```
 
 ### 2. Generate Workflow Graph
@@ -53,7 +53,7 @@ wdl2doc generate /path/to/wdl-project -o docs/
 Generate a Mermaid diagram for a specific workflow:
 
 ```bash
-wdl2doc graph workflow.wdl -o workflow_graph.md
+wdlatlas graph workflow.wdl -o workflow_graph.md
 ```
 
 ## Features

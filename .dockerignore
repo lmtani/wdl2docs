@@ -27,7 +27,7 @@ htmlcov/
 .git/
 .gitignore
 
-# Documentation output
+# Atlas doc outputs
 docs/
 *.html
 

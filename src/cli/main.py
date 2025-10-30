@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-WDL2Doc - Documentation generator for WDL workflows and tasks.
+WDL Atlas - Interactive explorer for WDL workflows and tasks.
+
+Provides comprehensive visualization and navigation of WDL projects including:
+- Interactive workflow diagrams (DAG)
+- Docker image inventory
+- Cross-references between workflows and tasks
+- External dependency tracking
 """
 
 import click
@@ -20,7 +26,7 @@ logger = logging.getLogger(__name__)
 @click.group()
 @click.version_option(version="0.1.0")
 def cli():
-    """WDL2Doc - Generate documentation for WDL workflows and tasks."""
+    """WDL Atlas - Interactive explorer for WDL workflows and tasks."""
 
 
 @cli.command()

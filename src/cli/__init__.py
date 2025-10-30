@@ -1,1 +1,1 @@
-"""Command-line interface for WDL2Doc."""
+"""Command-line interface for WDL Atlas."""

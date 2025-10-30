@@ -1,5 +1,5 @@
 [project]
-name = "wdl2doc"
+name = "wdlatlas"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
@@ -18,7 +18,7 @@ where = ["."]
 include = ["src*"]
 
 [project.scripts]
-wdl2doc = "src.cli.main:cli"
+wdlatlas = "src.cli.main:cli"
 
 [project.optional-dependencies]
 dev = [

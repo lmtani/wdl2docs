@@ -40,7 +40,7 @@ The `docs.yml` workflow performs the following steps:
 1. **Build Job:**
    - Checks out the documentation tool repository
    - Installs Python (e.g., 3.13)
-   - Installs the documentation tool (e.g., wdl2docs)
+   - Installs the documentation tool (e.g., wdlatlas)
    - Clones the repository defined in the `TARGET_REPOSITORY` variable
    - Generates HTML documentation
    - Uploads the files as an artifact
