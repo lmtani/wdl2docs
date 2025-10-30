@@ -7,6 +7,8 @@ Tests the HTML documentation generation functionality, including:
 - Docker images page generation
 - Static assets copying
 """
+from typing import Any
+from unittest.mock import patch
 
 import pytest
 from pathlib import Path
@@ -24,27 +26,41 @@ from src.domain.value_objects import (
 from src.domain.errors import ParseError
 
 
-class FakeAssetCopier:
-    """Fake asset copier for testing."""
+@pytest.fixture
+def output_dir(temp_dir) -> Path:
+    return temp_dir / "output"
 
-    def copy_static_assets(self, output_dir: Path) -> None:
-        """Create static directory as expected by tests."""
-        static_dir = output_dir / "static"
-        static_dir.mkdir(parents=True, exist_ok=True)
+@pytest.fixture
+def document_generator(output_dir, temp_dir):
+    """Create an DocumentationGenerator instance."""
+    return DocumentationGenerator(output_dir=output_dir, root_path=temp_dir)
 
 
 @pytest.fixture
-def fake_asset_copier():
-    """Create fake asset copier for tests."""
-    return FakeAssetCopier()
+def mock_copytree(temp_dir) -> Any:
+    """Mock shutil.copytree."""
+    with patch("src.infrastructure.rendering.generator.shutil.copytree") as mock_copytree:
+        yield mock_copytree
 
 
-def should_generate_document_page_for_workflow(temp_dir, fake_asset_copier):
+@pytest.fixture
+def mock_rmtree(temp_dir) -> Any:
+    """Mock shutil.rmtree."""
+    with patch("src.infrastructure.rendering.generator.shutil.rmtree") as mock_copyfile:
+        yield mock_copyfile
+
+
+@pytest.fixture
+def mocked_document_generator(document_generator, mock_copytree, mock_rmtree):
+    """Create an DocumentationGenerator instance with mocked shutil functions."""
+    document_generator._mock_copytree = mock_copytree
+    document_generator._mock_rmtree = mock_rmtree
+    yield document_generator
+
+
+def should_generate_document_page_for_workflow(mocked_document_generator, temp_dir):
     """Test generating HTML page for a workflow document."""
     # Arrange
-    output_dir = temp_dir / "output"
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
-
     workflow = WDLWorkflow(
         name="TestWorkflow",
         description="A test workflow",
@@ -81,7 +97,7 @@ def should_generate_document_page_for_workflow(temp_dir, fake_asset_copier):
     )
 
     # Act
-    output_file = generator.generate_document_page(document)
+    output_file = mocked_document_generator.generate_document_page(document)
 
     # Assert
     assert output_file.exists()
@@ -94,11 +110,9 @@ def should_generate_document_page_for_workflow(temp_dir, fake_asset_copier):
     assert "A test workflow" in content
 
 
-def should_generate_document_page_for_task(temp_dir, fake_asset_copier):
+def should_generate_document_page_for_task(temp_dir, mocked_document_generator):
     """Test generating HTML page for a task document."""
     # Arrange
-    output_dir = temp_dir / "output"
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     task = WDLTask(
         name="ProcessTask",
@@ -138,7 +152,7 @@ def should_generate_document_page_for_task(temp_dir, fake_asset_copier):
     )
 
     # Act
-    output_file = generator.generate_document_page(document)
+    output_file = mocked_document_generator.generate_document_page(document)
 
     # Assert
     assert output_file.exists()
@@ -147,12 +161,11 @@ def should_generate_document_page_for_task(temp_dir, fake_asset_copier):
     assert "Process files" in content
 
 
-def should_generate_index_page(temp_dir, fake_asset_copier):
+def should_generate_index_page(temp_dir, mocked_document_generator):
     """Test generating index.html page."""
     # Arrange
     output_dir = temp_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)  # Create output directory
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     documents = [
         WDLDocument(
@@ -194,7 +207,7 @@ def should_generate_index_page(temp_dir, fake_asset_copier):
     ]
 
     # Act
-    index_file = generator.generate_index(documents)
+    index_file = mocked_document_generator.generate_index(documents)
 
     # Assert
     assert index_file.exists()
@@ -205,12 +218,11 @@ def should_generate_index_page(temp_dir, fake_asset_copier):
     assert "Workflow2" in content
 
 
-def should_include_parse_errors_in_index(temp_dir, fake_asset_copier):
+def should_include_parse_errors_in_index(temp_dir, mocked_document_generator):
     """Test that parse errors are included in index page."""
     # Arrange
     output_dir = temp_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)  # Create output directory
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     documents = []
     parse_errors = [
@@ -225,7 +237,7 @@ def should_include_parse_errors_in_index(temp_dir, fake_asset_copier):
     ]
 
     # Act
-    index_file = generator.generate_index(documents, parse_errors)
+    index_file = mocked_document_generator.generate_index(documents, parse_errors)
 
     # Assert
     assert index_file.exists()
@@ -233,12 +245,11 @@ def should_include_parse_errors_in_index(temp_dir, fake_asset_copier):
     assert "broken.wdl" in content or "SyntaxError" in content
 
 
-def should_generate_docker_images_page(temp_dir, fake_asset_copier):
+def should_generate_docker_images_page(temp_dir, mocked_document_generator):
     """Test generating Docker images inventory page."""
     # Arrange
     output_dir = temp_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)  # Create output directory
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     # Import WDLDockerImage
     from src.domain.value_objects import WDLDockerImage
@@ -283,7 +294,7 @@ def should_generate_docker_images_page(temp_dir, fake_asset_copier):
     ]
 
     # Act
-    docker_page = generator.generate_docker_images_page(documents)
+    docker_page = mocked_document_generator.generate_docker_images_page(documents)
 
     # Assert
     assert docker_page.exists()
@@ -294,68 +305,24 @@ def should_generate_docker_images_page(temp_dir, fake_asset_copier):
     assert "docker" in content.lower() or "container" in content.lower()
 
 
-def should_copy_static_assets(temp_dir, fake_asset_copier):
+def should_copy_static_assets(temp_dir, mocked_document_generator, mock_copytree):
     """Test copying static assets to output directory."""
     # Arrange
     output_dir = temp_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
-
-    # Act - This might fail if static directory doesn't exist, which is OK for now
-    # The test verifies the method exists and can be called
-    try:
-        generator.copy_static_assets()
-
-        # Assert
-        static_dir = output_dir / "static"
-        assert static_dir.exists()
-        assert static_dir.is_dir()
-    except FileNotFoundError:
-        # If static assets don't exist in the infrastructure, that's OK
-        # The test verifies the method is callable
-        pass
-
-
-def should_create_output_directory_if_not_exists(temp_dir, fake_asset_copier):
-    """Test that output directory is created if it doesn't exist."""
-    # Arrange
-    output_dir = temp_dir / "nonexistent" / "output"
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
-
-    document = WDLDocument(
-        file_path=temp_dir / "test.wdl",
-        relative_path=Path("test.wdl"),
-        version="1.0",
-        workflow=None,
-        tasks=[
-            WDLTask(
-                name="TestTask",
-                description="",
-                inputs=[],
-                outputs=[],
-                command=WDLCommand(raw_command="echo test", formatted_command="echo test"),
-                runtime={},
-                meta={},
-            )
-        ],
-        imports=[],
-        source_code="",
-    )
+    expected_template_path = getattr(mocked_document_generator, "_templates_dir")
 
     # Act
-    output_file = generator.generate_document_page(document)
+    mocked_document_generator.copy_static_assets()
 
     # Assert
-    assert output_dir.exists()
-    assert output_file.exists()
+    static_dir = output_dir / "static"
+    mock_copytree.assert_called_once_with(expected_template_path / "static", static_dir)
 
 
-def should_preserve_directory_structure_in_output(temp_dir, fake_asset_copier):
+def should_preserve_directory_structure_in_output(temp_dir, mocked_document_generator):
     """Test that directory structure is preserved in output."""
     # Arrange
-    output_dir = temp_dir / "output"
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
-
     document = WDLDocument(
         file_path=temp_dir / "workflows" / "v1" / "main.wdl",
         relative_path=Path("workflows/v1/main.wdl"),
@@ -376,19 +343,18 @@ def should_preserve_directory_structure_in_output(temp_dir, fake_asset_copier):
     )
 
     # Act
-    output_file = generator.generate_document_page(document)
+    output_file = mocked_document_generator.generate_document_page(document)
 
     # Assert
     assert "workflows" in str(output_file)
     assert "v1" in str(output_file)
 
 
-def should_execute_full_generation_workflow(temp_dir, fake_asset_copier):
+def should_execute_full_generation_workflow(temp_dir, mocked_document_generator):
     """Test the complete execute() workflow."""
     # Arrange
     output_dir = temp_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     documents = [
         WDLDocument(
@@ -415,7 +381,7 @@ def should_execute_full_generation_workflow(temp_dir, fake_asset_copier):
 
     # Act - Wrap in try-except to handle static assets issue
     try:
-        generator.execute(documents, parse_errors)
+        mocked_document_generator.execute(documents, parse_errors)
 
         # Assert
         # Check that expected files are created (except static which might not exist)
@@ -436,19 +402,18 @@ def should_execute_full_generation_workflow(temp_dir, fake_asset_copier):
             raise
 
 
-def should_handle_empty_document_list(temp_dir, fake_asset_copier):
+def should_handle_empty_document_list(temp_dir, mocked_document_generator):
     """Test handling of empty document list."""
     # Arrange
     output_dir = temp_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     documents = []
     parse_errors = []
 
     # Act - Handle potential static assets issue
     try:
-        generator.execute(documents, parse_errors)
+        mocked_document_generator.execute(documents, parse_errors)
     except FileNotFoundError as e:
         if "static" not in str(e):
             raise
@@ -459,11 +424,10 @@ def should_handle_empty_document_list(temp_dir, fake_asset_copier):
     assert (output_dir / "docker_images.html").exists()
 
 
-def should_handle_documents_without_workflow(temp_dir, fake_asset_copier):
+def should_handle_documents_without_workflow(temp_dir, mocked_document_generator):
     """Test handling documents that contain only tasks."""
     # Arrange
     output_dir = temp_dir / "output"
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
 
     document = WDLDocument(
         file_path=temp_dir / "tasks.wdl",
@@ -495,7 +459,7 @@ def should_handle_documents_without_workflow(temp_dir, fake_asset_copier):
     )
 
     # Act
-    output_file = generator.generate_document_page(document)
+    output_file = mocked_document_generator.generate_document_page(document)
 
     # Assert
     assert output_file.exists()
@@ -504,12 +468,9 @@ def should_handle_documents_without_workflow(temp_dir, fake_asset_copier):
     assert "Task2" in content
 
 
-def should_handle_documents_with_both_workflow_and_tasks(temp_dir, fake_asset_copier):
+def should_handle_documents_with_both_workflow_and_tasks(temp_dir, mocked_document_generator):
     """Test handling documents with both workflow and tasks."""
     # Arrange
-    output_dir = temp_dir / "output"
-    generator = DocumentationGenerator(output_dir=output_dir, root_path=temp_dir, asset_copier=fake_asset_copier)
-
     document = WDLDocument(
         file_path=temp_dir / "mixed.wdl",
         relative_path=Path("mixed.wdl"),
@@ -540,10 +501,39 @@ def should_handle_documents_with_both_workflow_and_tasks(temp_dir, fake_asset_co
     )
 
     # Act
-    output_file = generator.generate_document_page(document)
+    output_file = mocked_document_generator.generate_document_page(document)
 
     # Assert
     assert output_file.exists()
     content = output_file.read_text()
     assert "MixedWorkflow" in content
     assert "HelperTask" in content
+
+
+
+def should_remove_existing_target_directory(mocked_document_generator, temp_dir, mock_rmtree):
+    """Test that existing target directory is removed before copying."""
+    # Arrange
+    output_dir = temp_dir / "output"
+    output_dir.mkdir()
+    target_static_dir = output_dir / "static"
+    target_static_dir.mkdir()  # Create existing directory
+
+    # Act
+    mocked_document_generator.copy_static_assets()
+
+    # Assert
+    mock_rmtree.assert_called_once_with(target_static_dir)
+
+
+def should_raise_error_when_source_directory_does_not_exist(mocked_document_generator):
+    """Test that FileNotFoundError is raised when source static directory doesn't exist."""
+    # Arrange
+    mocked_document_generator.source_static_dir = Path("/nonexistent/path")
+
+    # Act & Assert
+    with pytest.raises(FileNotFoundError) as exc_info:
+        mocked_document_generator.copy_static_assets()
+
+    assert "Could not find static directory" in str(exc_info.value)
+    assert str(mocked_document_generator.source_static_dir) in str(exc_info.value)

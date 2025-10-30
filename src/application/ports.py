@@ -96,19 +96,3 @@ class DocumentationGeneratorPort(Protocol):
             True if generation was successful, False otherwise
         """
         ...
-
-
-class AssetCopierPort(Protocol):
-    """Protocol for static asset copying operations."""
-
-    def copy_static_assets(self, output_dir: Path) -> None:
-        """
-        Copy static assets to the output directory.
-
-        Args:
-            output_dir: Directory where assets should be copied
-
-        Raises:
-            FileNotFoundError: If source assets don't exist
-        """
-        ...
