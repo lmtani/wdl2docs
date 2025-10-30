@@ -9,7 +9,7 @@ from typing import List, Set, Dict
 import WDL.Tree
 
 from src.domain.value_objects import WDLImport, WDLCall
-from src.infrastructure.parsing.path_resolver import PathResolver
+from src.infrastructure.shared.path_resolver import PathResolver
 
 
 class Analyzer:

@@ -20,7 +20,7 @@ from src.domain.value_objects import (
 )
 from src.infrastructure.parsing.docker_extractor import DockerExtractor
 from src.infrastructure.parsing.graph_generator import generate_mermaid_graph
-from src.infrastructure.parsing.path_resolver import PathResolver
+from src.infrastructure.shared.path_resolver import PathResolver
 
 
 class AstMapper:

@@ -11,6 +11,8 @@ from typing import Any, Dict, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
 
+from src.infrastructure.shared.path_resolver import PathResolver
+
 logger = logging.getLogger(__name__)
 
 
@@ -87,7 +89,8 @@ class TemplateRenderer:
 
         return relative
 
-    def _normalize_path(self, path: Path) -> Path:
+    @staticmethod
+    def _normalize_path(path: Path) -> Path:
         """
         Normalize a path by resolving .. references.
 
@@ -99,23 +102,7 @@ class TemplateRenderer:
         Returns:
             Normalized path
         """
-        parts = list(path.parts)
-
-        # If path contains 'external', normalize from 'external' onwards
-        if "external" in parts:
-            external_idx = parts.index("external")
-            return Path(*parts[external_idx:])
-
-        # Otherwise, resolve .. manually
-        normalized_parts = []
-        for part in parts:
-            if part == "..":
-                if normalized_parts:
-                    normalized_parts.pop()
-            elif part != ".":
-                normalized_parts.append(part)
-
-        return Path(*normalized_parts) if normalized_parts else path
+        return PathResolver.normalize_relative_path(path)
 
     def _relpath_filter(self, path: Path, start: Optional[Path] = None) -> str:
         """
