@@ -28,7 +28,7 @@ def main():
     docs_dir = Path(__file__).parent.parent / "docs"
     if not docs_dir.exists():
         print(f"❌ Error: Documentation directory not found at {docs_dir}")
-        print("   Please run 'wdlatlas generate' first to generate the documentation.")
+        print("   Please run 'wdlatlas generate' first to generate the HTMLs.")
         sys.exit(1)
 
     # Change to docs directory
@@ -42,7 +42,7 @@ def main():
     try:
         with socketserver.TCPServer(("", port), Handler) as httpd:
             url = f"http://localhost:{port}"
-            print(f"🚀 Starting HTTP server for WDL documentation...")
+            print(f"🚀 Starting HTTP server for WDL Atlas...")
             print(f"📁 Serving directory: {docs_dir}")
             print(f"🌐 Open your browser at: {url}")
             print(f"⏹️  Press Ctrl+C to stop the server")

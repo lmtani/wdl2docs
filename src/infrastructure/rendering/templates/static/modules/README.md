@@ -1,6 +1,6 @@
-# JavaScript Modules - WDL Documentation
+# JavaScript Modules - WDL Atlas
 
-This directory contains the modularized JavaScript modules for the WDL documentation application.
+This directory contains the modularized JavaScript modules for the WDL Atlas application.
 
 ## 📁 Module Structure
 
@@ -172,7 +172,7 @@ make docs
 open docs/index.html
 
 # Check browser console
-# You should see: "✅ WDL Documentation initialized successfully"
+# You should see: "✅ WDL Atlas initialized successfully"
 ```
 
 ### Feature Checklist

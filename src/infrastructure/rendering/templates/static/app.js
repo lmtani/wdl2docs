@@ -1,5 +1,5 @@
 /**
- * WDL Documentation - Main Application Module
+ * WDL Atlas - Main Application Module
  * 
  * Orquestra a inicialização de todos os módulos da aplicação
  */
@@ -35,7 +35,7 @@ class WDLDocApp {
     }
     
     initializeModules() {
-        console.log('🚀 Initializing WDL Documentation...');
+        console.log('🚀 Initializing WDL Atlas...');
         
         try {
             // Inicializa módulos universais (presentes em todas as páginas)
@@ -56,9 +56,9 @@ class WDLDocApp {
                 console.log('✓ Docker images module initialized');
             }
             
-            console.log('✅ WDL Documentation initialized successfully');
+            console.log('✅ WDL Atlas initialized successfully');
         } catch (error) {
-            console.error('❌ Error initializing WDL Documentation:', error);
+            console.error('❌ Error initializing WDL Atlas:', error);
         }
     }
     
