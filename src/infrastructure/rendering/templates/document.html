@@ -12,8 +12,8 @@
 {% endblock %}
 {% block nav %}
     <span style="color: #ecf0f1;">|</span>
-    <a href="#inputs">Inputs</a>
-    <a href="#outputs">Outputs</a>
+    {% if doc.has_workflow and doc.workflow.has_inputs %}<a href="#inputs">Inputs</a>{% endif %}
+    {% if doc.has_workflow and doc.workflow.has_outputs %}<a href="#outputs">Outputs</a>{% endif %}
     {% if doc.has_workflow and doc.workflow.has_calls %}<a href="#calls">Calls</a>{% endif %}
     {% if doc.has_workflow and doc.workflow.has_docker_images %}<a href="#docker-images">Images</a>{% endif %}
     {% if doc.has_tasks %}<a href="#tasks">Tasks</a>{% endif %}
