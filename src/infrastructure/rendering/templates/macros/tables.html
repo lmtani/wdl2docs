@@ -26,9 +26,9 @@
                     {% endif %}
                 {% endfor %}
                 {# Renderizar struct inputs primeiro #}
-                {% for input in struct_inputs %}{{ struct_input_row(<built-in function input>) }}{% endfor %}
+                {% for input in struct_inputs %}{{ struct_input_row(input) }}{% endfor %}
                 {# Renderizar inputs obrigatórios #}
-                {% for input in regular_inputs %}{{ input_row(<built-in function input>) }}{% endfor %}
+                {% for input in regular_inputs %}{{ input_row(input) }}{% endfor %}
                 {# Renderizar inputs opcionais (com defaults) - colapsados #}
                 {% if default_inputs %}
                     <tr class="default-inputs-row">

@@ -146,8 +146,12 @@ class TemplateRenderer:
         Returns:
             Rendered HTML string
         """
-        template = self.env.get_template(template_name)
-        return template.render(**context)
+        try:
+            template = self.env.get_template(template_name)
+            return template.render(**context)
+        except Exception as e:
+            logger.error(f"Error rendering template {template_name}: {e}", exc_info=True)
+            raise
 
     def get_template(self, template_name: str):
         """
