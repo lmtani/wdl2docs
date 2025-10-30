@@ -1,71 +1,69 @@
-# Template Organization
+# Jinja2 Template Organization
 
-# Templates Jinja2
+This document describes the organization of Jinja2 templates in the WDL Atlas project.
 
-Este documento descreve a organização dos templates Jinja2 do projeto WDL Atlas.
-
-## Estrutura de Diretórios
+## Directory Structure
 
 ```
 src/infrastructure/rendering/templates/
-├── macros/              # Macros reutilizáveis
+├── macros/              # Reusable macros
 │   ├── badges.html      # Badges (workflow, task, mixed, external, etc.)
-│   ├── tables.html      # Tabelas (inputs, outputs, runtime, imports, etc.)
-│   └── lists.html       # Listas de arquivos WDL
-├── components/          # Componentes complexos
-│   ├── buttons.html     # Botões de ação (graph, source)
-│   ├── document.html    # Componentes específicos de documentos WDL
-│   ├── modals.html      # Modals (graph e source code)
-│   ├── stats.html       # Cards de estatísticas
-│   └── tabs.html        # Sistema de tabs
-├── static/              # Arquivos estáticos (CSS, JS, imagens)
-├── base.html            # Template base
-├── index.html           # Página índice
-├── document.html        # Página de documento WDL
-├── docker_images.html   # Inventário de imagens Docker
-└── graph.html           # Página de visualização de gráfico
+│   ├── tables.html      # Tables (inputs, outputs, runtime, imports, etc.)
+│   └── lists.html       # Lists of WDL files
+├── components/          # Complex components
+│   ├── buttons.html     # Action buttons (graph, source)
+│   ├── document.html    # WDL document-specific components
+│   ├── modals.html      # Modals (graph and source code)
+│   ├── stats.html       # Statistic cards
+│   └── tabs.html        # Tab system
+├── static/              # Static files (CSS, JS, images)
+├── base.html            # Base template
+├── index.html           # Index page
+├── document.html        # WDL document page
+├── docker_images.html   # Docker images inventory
+└── graph.html           # Graph visualization page
 ```
 
-## Princípios de Organização
+## Organization Principles
 
 ### 1. Macros (`macros/`)
-Funções reutilizáveis que retornam HTML. Use macros para:
-- Elementos pequenos e repetitivos (badges, inputs, botões)
-- Lógica de renderização comum
-- Componentes que precisam de parâmetros
+Reusable functions that return HTML. Use macros for:
+- Small, repetitive elements (badges, inputs, buttons)
+- Common rendering logic
+- Components that need parameters
 
-**Exemplo:**
+**Example:**
 ```jinja2
 {% from "macros/badges.html" import workflow_badge, task_badge %}
 
-{{ workflow_badge() }}  {# Renderiza <span class="badge badge-workflow">WORKFLOW</span> #}
+{{ workflow_badge() }}  {# Renders <span class="badge badge-workflow">WORKFLOW</span> #}
 ```
 
-### 2. Componentes (`components/`)
-Blocos maiores de funcionalidade. Use componentes para:
-- Seções completas da página
-- Componentes com JavaScript associado
-- Lógica complexa de renderização
+### 2. Components (`components/`)
+Larger blocks of functionality. Use components for:
+- Complete page sections
+- Components with associated JavaScript
+- Complex rendering logic
 
-**Exemplo:**
+**Example:**
 ```jinja2
 {% from "components/modals.html" import graph_modal %}
 
 {{ graph_modal(workflow_name, mermaid_graph) }}
 ```
 
-## Uso nos Templates
+## Usage in Templates
 
-### Importando Macros e Componentes
+### Importing Macros and Components
 
 ```jinja2
-{# No início do template #}
+{# At the beginning of the template #}
 {% from "macros/badges.html" import workflow_badge, task_badge %}
 {% from "macros/tables.html" import inputs_table, outputs_table %}
 {% from "components/stats.html" import stats_grid, stat_card %}
 ```
 
-### Exemplo Completo
+### Complete Example
 
 ```jinja2
 {% extends "base.html" %}
@@ -84,81 +82,81 @@ Blocos maiores de funcionalidade. Use componentes para:
 {% endblock %}
 ```
 
-## Catálogo de Macros
+## Macro Catalog
 
 ### badges.html
-- `badge(type, text)` - Badge genérico
-- `workflow_badge()` - Badge de workflow
-- `task_badge()` - Badge de task
-- `mixed_badge()` - Badge de arquivo misto
-- `external_badge()` - Badge de arquivo externo
-- `count_items(count, singular, plural)` - Badge com contador e pluralização
+- `badge(type, text)` - Generic badge
+- `workflow_badge()` - Workflow badge
+- `task_badge()` - Task badge
+- `mixed_badge()` - Mixed file badge
+- `external_badge()` - External file badge
+- `count_items(count, singular, plural)` - Badge with counter and pluralization
 
 ### tables.html
-- `inputs_table(inputs)` - Tabela de inputs com suporte a structs e defaults
-- `outputs_table(outputs)` - Tabela de outputs
-- `runtime_table(runtime_dict)` - Tabela de runtime
-- `imports_table(imports)` - Tabela de imports
-- `document_info_table(doc)` - Tabela de informações do documento
+- `inputs_table(inputs)` - Inputs table with support for structs and defaults
+- `outputs_table(outputs)` - Outputs table
+- `runtime_table(runtime_dict)` - Runtime table
+- `imports_table(imports)` - Imports table
+- `document_info_table(doc)` - Document info table
 
 ### lists.html
-- `file_list(title, description, files, badge_macro)` - Lista de arquivos WDL
+- `file_list(title, description, files, badge_macro)` - List of WDL files
 
-## Catálogo de Componentes
+## Component Catalog
 
 ### buttons.html
-- `graph_button()` - Botão para visualizar gráfico
-- `source_button()` - Botão para visualizar código fonte
-- `action_buttons()` - Container de botões (use com `{% call %}`)
+- `graph_button()` - Button to view graph
+- `source_button()` - Button to view source code
+- `action_buttons()` - Button container (use with `{% call %}`)
 
 ### document.html
-- `workflow_section_header(name, has_graph, has_source)` - Header de seção de workflow
-- `tasks_section_header(has_source)` - Header de seção de tasks
-- `subworkflow_usage_banner(call_info, relative_path)` - Banner de uso como subworkflow
-- `call_block(call, doc_relative_path)` - Bloco de call
-- `docker_images_grid(docker_images)` - Grid de imagens Docker
-- `task_card(task)` - Card completo de task
+- `workflow_section_header(name, has_graph, has_source)` - Workflow section header
+- `tasks_section_header(has_source)` - Tasks section header
+- `subworkflow_usage_banner(call_info, relative_path)` - Subworkflow usage banner
+- `call_block(call, doc_relative_path)` - Call block
+- `docker_images_grid(docker_images)` - Docker images grid
+- `task_card(task)` - Complete task card
 
 ### modals.html
-- `graph_modal(workflow_name, mermaid_graph)` - Modal de visualização de gráfico
-- `source_modal(doc_name, source_code)` - Modal de código fonte
+- `graph_modal(workflow_name, mermaid_graph)` - Graph visualization modal
+- `source_modal(doc_name, source_code)` - Source code modal
 
 ### stats.html
-- `stats_grid()` - Container de estatísticas (use com `{% call %}`)
-- `stat_card(number, label)` - Card individual de estatística
-- `stat_card_highlighted(number, label, color)` - Card com destaque
+- `stats_grid()` - Statistics container (use with `{% call %}`)
+- `stat_card(number, label)` - Individual statistic card
+- `stat_card_highlighted(number, label, color)` - Highlighted card
 
 ### tabs.html
-- `tabs_container()` - Container de tabs (use com `{% call %}`)
-- `tab_button(id, icon, label, count, active)` - Botão de tab
-- `tab_content(id, active)` - Conteúdo de tab (use com `{% call %}`)
-- `tab_notice(icon, title, description)` - Notice dentro de tab
+- `tabs_container()` - Tabs container (use with `{% call %}`)
+- `tab_button(id, icon, label, count, active)` - Tab button
+- `tab_content(id, active)` - Tab content (use with `{% call %}`)
+- `tab_notice(icon, title, description)` - Notice inside tab
 
-## Benefícios da Organização
+## Organization Benefits
 
-1. **Redução de Código Duplicado**: Componentes reutilizáveis eliminam repetição
-2. **Manutenção Facilitada**: Mudanças em um lugar afetam todas as páginas
-3. **Consistência Visual**: Mesmos componentes = mesma aparência
-4. **Testabilidade**: Componentes isolados são mais fáceis de testar
-5. **Legibilidade**: Templates principais ficam mais limpos e focados
-6. **Escalabilidade**: Fácil adicionar novos templates usando componentes existentes
+1. **Reduced Code Duplication**: Reusable components eliminate repetition
+2. **Easier Maintenance**: Changes in one place affect all pages
+3. **Visual Consistency**: Same components = same look
+4. **Testability**: Isolated components are easier to test
+5. **Readability**: Main templates are cleaner and more focused
+6. **Scalability**: Easy to add new templates using existing components
 
-## Adicionando Novos Componentes
+## Adding New Components
 
-1. **Identifique código duplicado** em múltiplos templates
-2. **Decida o tipo**:
-   - Pequeno e simples? → Macro em `macros/`
-   - Grande ou com JS? → Componente em `components/`
-3. **Crie o arquivo** com nome descritivo
-4. **Documente os parâmetros** no comentário inicial
-5. **Use em templates existentes** e remova código duplicado
+1. **Identify duplicated code** in multiple templates
+2. **Decide the type**:
+   - Small and simple? → Macro in `macros/`
+   - Large or with JS? → Component in `components/`
+3. **Create the file** with a descriptive name
+4. **Document parameters** in the initial comment
+5. **Use in existing templates** and remove duplicated code
 
-## Exemplo de Novo Macro
+## Example of a New Macro
 
 ```jinja2
 {# macros/alerts.html #}
 
-{# Alert genérico reutilizável #}
+{# Reusable generic alert #}
 {% macro alert(type, title, message) %}
 <div class="alert alert-{{ type }}">
     <strong>{{ title }}</strong>
@@ -166,7 +164,7 @@ Blocos maiores de funcionalidade. Use componentes para:
 </div>
 {%- endmacro %}
 
-{# Alerts específicos #}
+{# Specific alerts #}
 {% macro success_alert(message) %}
 {{ alert('success', '✓ Success', message) }}
 {%- endmacro %}
@@ -176,27 +174,27 @@ Blocos maiores de funcionalidade. Use componentes para:
 {%- endmacro %}
 ```
 
-## Convenções de Nomenclatura
+## Naming Conventions
 
-- **Arquivos**: `snake_case.html` (ex: `docker_images.html`)
-- **Macros/Componentes**: `snake_case` (ex: `workflow_badge`, `stat_card`)
-- **Parâmetros**: `snake_case` (ex: `doc_relative_path`, `workflow_name`)
-- **Classes CSS**: `kebab-case` (ex: `badge-workflow`, `stat-card`)
+- **Files**: `snake_case.html` (e.g., `docker_images.html`)
+- **Macros/Components**: `snake_case` (e.g., `workflow_badge`, `stat_card`)
+- **Parameters**: `snake_case` (e.g., `doc_relative_path`, `workflow_name`)
+- **CSS Classes**: `kebab-case` (e.g., `badge-workflow`, `stat-card`)
 
-## Boas Práticas
+## Best Practices
 
-1. **Sempre documente macros** com comentário explicando parâmetros
-2. **Use valores default** quando possível para tornar macros mais flexíveis
-3. **Mantenha macros focados**: uma responsabilidade por macro
-4. **Evite lógica complexa** em templates, mova para Python quando possível
-5. **Teste visualmente** após mudanças em componentes compartilhados
-6. **Use `{% call %}` blocks** para componentes que precisam de conteúdo personalizado
+1. **Always document macros** with comments explaining parameters
+2. **Use default values** when possible to make macros more flexible
+3. **Keep macros focused**: one responsibility per macro
+4. **Avoid complex logic** in templates, move to Python when possible
+5. **Test visually** after changes in shared components
+6. **Use `{% call %}` blocks** for components needing custom content
 
-## Migração de Templates Antigos
+## Migrating Old Templates
 
-Se você encontrar código duplicado nos templates antigos (`*_backup.html`):
+If you find duplicated code in old templates (`*_backup.html`):
 
-1. Extraia para um novo macro/componente
-2. Atualize todos os templates que usam esse código
-3. Teste a renderização
-4. Remova os arquivos de backup quando confirmado que funciona
+1. Extract to a new macro/component
+2. Update all templates using that code
+3. Test rendering
+4. Remove backup files once confirmed working
