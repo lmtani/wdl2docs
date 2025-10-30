@@ -9,7 +9,7 @@ from typing import List, Set, Dict
 import WDL.Tree
 
 from src.domain.value_objects import WDLImport, WDLCall
-from src.infrastructure.shared.path_resolver import PathResolver
+from src.infrastructure.parsing.call_parser import CallParser
 
 
 class Analyzer:
@@ -28,6 +28,7 @@ class Analyzer:
             base_path: Base path for path calculations
         """
         self.base_path = base_path
+        self.call_parser = CallParser(base_path)
 
     def analyze_dependencies(self, workflow: WDL.Tree.Workflow, imports: List[WDLImport]) -> Dict[str, Set[str]]:
         """
@@ -101,61 +102,17 @@ class Analyzer:
             Dictionary mapping callers to their calls
         """
         call_graph = {}
+        calls = self.call_parser.parse_calls(workflow, imports)
 
-        for call in workflow.body:
-            if isinstance(call, WDL.Tree.Call):
-                callee = call.callee
-                if not callee or not hasattr(callee, "name"):
-                    continue
+        for wdl_call in calls:
+            caller_name = wdl_call.alias if wdl_call.alias else wdl_call.name
 
-                caller_name = call.name if call.name else callee.name
+            if caller_name not in call_graph:
+                call_graph[caller_name] = []
 
-                if caller_name not in call_graph:
-                    call_graph[caller_name] = []
-
-                # Create WDLCall object (simplified for analysis)
-                wdl_call = self._create_call_object(call, imports)
-                call_graph[caller_name].append(wdl_call)
+            call_graph[caller_name].append(wdl_call)
 
         return call_graph
-
-    def _create_call_object(self, call: WDL.Tree.Call, imports: List[WDLImport]) -> WDLCall:
-        """Create a WDLCall object for analysis purposes."""
-        callee = call.callee
-        if not callee or not hasattr(callee, "name"):
-            raise ValueError("Invalid call: callee has no name")
-
-        call_type = "workflow" if isinstance(callee, WDL.Tree.Workflow) else "task"
-
-        # Check if imported
-        is_local = call.callee_id[0] not in [imp.namespace for imp in imports if imp.namespace]
-
-        # Determine link target
-        link_target = None
-        if not is_local:
-            namespace = call.callee_id[0]
-            import_obj = next((imp for imp in imports if imp.namespace == namespace), None)
-            if import_obj and import_obj.resolved_path:
-                rel_path = PathResolver.calculate_relative_path(import_obj.resolved_path, self.base_path)
-                link_target = str(rel_path).replace(".wdl", ".html")
-        else:
-            link_target = f"#{callee.name}"
-
-        # Parse input mappings
-        inputs_mapping = {}
-        if call.inputs:
-            for name, expr in call.inputs.items():
-                inputs_mapping[name] = str(expr)
-
-        return WDLCall(
-            name=callee.name,
-            task_or_workflow=callee.name,
-            alias=call.name if call.name != callee.name else None,
-            inputs_mapping=inputs_mapping,
-            is_local=is_local,
-            link_target=link_target,
-            call_type=call_type,
-        )
 
     def _is_external_path(self, path: Path) -> bool:
         """

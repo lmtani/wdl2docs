@@ -16,10 +16,10 @@ from src.domain.value_objects import (
     WDLType,
     WDLCommand,
     WDLImport,
-    WDLCall,
 )
 from src.infrastructure.parsing.docker_extractor import DockerExtractor
 from src.infrastructure.parsing.graph_generator import generate_mermaid_graph
+from src.infrastructure.parsing.call_parser import CallParser
 from src.infrastructure.shared.path_resolver import PathResolver
 
 
@@ -42,6 +42,7 @@ class AstMapper:
         self.base_path = base_path
         self.output_dir = output_dir
         self.docker_extractor = DockerExtractor()
+        self.call_parser = CallParser(base_path)
 
     def map_workflow(self, workflow: WDL.Tree.Workflow, imports: List[WDLImport], wdl_path: Path) -> WDLWorkflow:
         """Map a miniwdl Workflow object to domain WDLWorkflow."""
@@ -55,7 +56,7 @@ class AstMapper:
         outputs = [self._parse_output(out) for out in workflow.outputs] if workflow.outputs else []
 
         # Parse calls
-        calls = self._parse_calls(workflow, imports)
+        calls = self.call_parser.parse_calls(workflow, imports)
 
         # Extract docker images
         docker_images = self.docker_extractor.extract_from_workflow(workflow)
@@ -100,7 +101,8 @@ class AstMapper:
             meta=meta,
         )
 
-    def map_imports(self, doc: WDL.Tree.Document, wdl_path: Path) -> List[WDLImport]:
+    @staticmethod
+    def map_imports(doc: WDL.Tree.Document, wdl_path: Path) -> List[WDLImport]:
         """Map import statements."""
         imports = []
         for imp in doc.imports:
@@ -116,56 +118,6 @@ class AstMapper:
             )
 
         return imports
-
-    def _parse_calls(self, workflow: WDL.Tree.Workflow, imports: List[WDLImport]) -> List[WDLCall]:
-        """Parse workflow calls."""
-        calls = []
-
-        for call in workflow.body:
-            if isinstance(call, WDL.Tree.Call):
-                # Determine if it's a task or workflow call
-                callee = call.callee
-                if not callee or not hasattr(callee, "name"):
-                    continue
-
-                call_type = "workflow" if isinstance(callee, WDL.Tree.Workflow) else "task"
-
-                # Check if it's imported
-                is_local = call.callee_id[0] not in [imp.namespace for imp in imports if imp.namespace]
-
-                # Determine link target
-                link_target = None
-                if not is_local:
-                    # Find the import
-                    namespace = call.callee_id[0]
-                    import_obj = next((imp for imp in imports if imp.namespace == namespace), None)
-                    if import_obj and import_obj.resolved_path:
-                        # Calculate relative link for HTML
-                        rel_path = PathResolver.calculate_relative_path(import_obj.resolved_path, self.base_path)
-                        link_target = str(rel_path).replace(".wdl", ".html")
-                else:
-                    # Local reference - use anchor
-                    link_target = f"#{callee.name}"
-
-                # Parse input mappings
-                inputs_mapping = {}
-                if call.inputs:
-                    for name, expr in call.inputs.items():
-                        inputs_mapping[name] = str(expr)
-
-                calls.append(
-                    WDLCall(
-                        name=callee.name,
-                        task_or_workflow=callee.name,
-                        alias=call.name if call.name != callee.name else None,
-                        inputs_mapping=inputs_mapping,
-                        is_local=is_local,
-                        link_target=link_target,
-                        call_type=call_type,
-                    )
-                )
-
-        return calls
 
     def _parse_input(self, inp: WDL.Tree.Decl) -> WDLInput:
         """Parse a WDL input declaration."""

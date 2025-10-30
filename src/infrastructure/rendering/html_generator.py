@@ -12,6 +12,7 @@ from typing import List, Optional, Dict, Any
 from src.domain.value_objects import WDLDocument
 from src.domain.errors import ParseError
 from src.infrastructure.rendering.template_renderer import TemplateRenderer
+from src.infrastructure.shared.path_resolver import PathResolver
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ class HtmlGenerator:
             Path to generated HTML file
         """
         # Normalize path and determine output file
-        relative_path = self.renderer._normalize_path(doc.relative_path)
+        relative_path = PathResolver.normalize_relative_path(doc.relative_path)
         output_file = self.output_dir / relative_path.with_suffix(".html")
         output_file.parent.mkdir(parents=True, exist_ok=True)
 

@@ -7,6 +7,7 @@ Tests the HTML documentation generation functionality, including:
 - Docker images page generation
 - Static assets copying
 """
+
 from typing import Any
 from unittest.mock import patch
 
@@ -17,18 +18,13 @@ from src.infrastructure.rendering.generator import DocumentationGenerator
 from src.domain.value_objects import (
     WDLDocument,
     WDLWorkflow,
-    WDLTask,
-    WDLInput,
-    WDLOutput,
-    WDLType,
-    WDLCommand,
 )
-from src.domain.errors import ParseError
 
 
 @pytest.fixture
 def output_dir(temp_dir) -> Path:
     return temp_dir / "output"
+
 
 @pytest.fixture
 def document_generator(output_dir, temp_dir):
@@ -56,6 +52,7 @@ def mocked_document_generator(document_generator, mock_copytree, mock_rmtree):
     document_generator._mock_copytree = mock_copytree
     document_generator._mock_rmtree = mock_rmtree
     yield document_generator
+
 
 def should_copy_static_assets(temp_dir, mocked_document_generator, mock_copytree):
     """Test copying static assets to output directory."""
