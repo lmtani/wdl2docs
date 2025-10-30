@@ -5,10 +5,6 @@ on:
   push:
     branches:
       - '**'
-  # Run tests on pull requests
-  pull_request:
-    branches:
-      - '**'
 
 jobs:
   test:
