@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ workflow_name }} - Workflow Graph</title>
-    <link rel="icon" type="image/png" href="{{ root_path }}static/logo.png">
-    <link rel="stylesheet" href="{{ root_path }}static/style.css">
-    <!-- Mermaid.js for workflow graphs -->
-    <script type="module">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ workflow_name }} - Workflow Graph</title>
+        <link rel="icon" type="image/png" href="{{ root_path }}static/logo.png">
+        <link rel="stylesheet" href="{{ root_path }}static/style.css">
+        <!-- Mermaid.js for workflow graphs -->
+        <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ 
             startOnLoad: true,
@@ -42,9 +42,9 @@
             }
         });
         window.mermaid = mermaid;
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-    <script type="module">
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+        <script type="module">
         // Importar módulo de gerenciamento de pan-zoom para página standalone
         let panZoomInstance = null;
 
@@ -108,8 +108,8 @@
                 panZoomInstance.center();
             }
         };
-    </script>
-    <style>
+        </script>
+        <style>
         body {
             margin: 0;
             overflow: hidden;
@@ -298,74 +298,72 @@
             stroke: #58a6ff !important;
             stroke-width: 1.5px !important;
         }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <div class="header-title">
-                    <img src="{{ root_path }}static/logo.png" alt="WDL Logo" class="wdl-logo">
-                    <h1>Workflow Graph</h1>
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-title">
+                        <img src="{{ root_path }}static/logo.png" alt="WDL Logo" class="wdl-logo">
+                        <h1>Workflow Graph</h1>
+                    </div>
+                    <nav class="nav">
+                        <a href="{{ root_path }}index.html">Home</a>
+                        <span style="color: #ecf0f1;">|</span>
+                        <a href="{{ back_to_doc }}">Back to Workflow</a>
+                    </nav>
                 </div>
-                <nav class="nav">
-                    <a href="{{ root_path }}index.html">Home</a>
-                    <span style="color: #ecf0f1;">|</span>
-                    <a href="{{ back_to_doc }}">Back to Workflow</a>
-                </nav>
             </div>
-        </div>
-    </header>
-    
-    <main class="container graph-page">
-        <div class="graph-header">
-            <h1>{{ workflow_name }}</h1>
-            <p>Interactive Workflow Execution Graph</p>
-        </div>
-        
-        <div class="graph-controls">
-            <button onclick="zoomIn()" title="Zoom In">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path>
-                </svg>
-                Zoom In
-            </button>
-            <button onclick="zoomOut()" title="Zoom Out">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
-                </svg>
-                Zoom Out
-            </button>
-            <button onclick="fitToScreen()" title="Fit to Screen">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-                </svg>
-                Fit to Screen
-            </button>
-            <button onclick="resetZoom()" title="Reset View">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                Reset
-            </button>
-        </div>
-        
-        <div class="graph-container">
-            <div id="graph-svg-container">
-                <pre class="mermaid">{{ mermaid_graph }}</pre>
+        </header>
+        <main class="container graph-page">
+            <div class="graph-header">
+                <h1>{{ workflow_name }}</h1>
+                <p>Interactive Workflow Execution Graph</p>
             </div>
-            <div class="zoom-hint">
-                🖱️ Scroll to zoom • Drag to pan • Double-click to reset
+            <div class="graph-controls">
+                <button onclick="zoomIn()" title="Zoom In">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7">
+                        </path>
+                    </svg>
+                    Zoom In
+                </button>
+                <button onclick="zoomOut()" title="Zoom Out">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7">
+                        </path>
+                    </svg>
+                    Zoom Out
+                </button>
+                <button onclick="fitToScreen()" title="Fit to Screen">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4">
+                        </path>
+                    </svg>
+                    Fit to Screen
+                </button>
+                <button onclick="resetZoom()" title="Reset View">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                    Reset
+                </button>
             </div>
-        </div>
-    </main>
-    
-    <footer style="padding: 10px 0; flex-shrink: 0;">
-        <div class="container">
-            <p style="text-align: center; color: #666; margin: 0; font-size: 11px;">
-                Generated by WDL2Doc • Interactive Graph powered by Mermaid.js & svg-pan-zoom
-            </p>
-        </div>
-    </footer>
-</body>
+            <div class="graph-container">
+                <div id="graph-svg-container">
+                    <pre class="mermaid">{{ mermaid_graph }}</pre>
+                </div>
+                <div class="zoom-hint">🖱️ Scroll to zoom • Drag to pan • Double-click to reset</div>
+            </div>
+        </main>
+        <footer style="padding: 10px 0; flex-shrink: 0;">
+            <div class="container">
+                <p style="text-align: center; color: #666; margin: 0; font-size: 11px;">
+                    Generated by WDL2Doc • Interactive Graph powered by Mermaid.js & svg-pan-zoom
+                </p>
+            </div>
+        </footer>
+    </body>
 </html>

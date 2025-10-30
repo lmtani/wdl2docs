@@ -3,121 +3,79 @@
 {% from "macros/tables.html" import inputs_table, outputs_table, imports_table, document_info_table %}
 {% from "components/document.html" import workflow_section_header, tasks_section_header, subworkflow_usage_banner, call_block, docker_images_grid, task_card %}
 {% from "components/modals.html" import graph_modal, source_modal %}
-
 {% block title %}{{ doc.name }} - WDL Documentation{% endblock %}
-
 {% block header %}
-{{ doc.name }}
-<div style="font-size: 14px; font-weight: normal; margin-top: 10px;">
-    <code>{{ doc.relative_path }}</code>
-</div>
+    {{ doc.name }}
+    <div style="font-size: 14px; font-weight: normal; margin-top: 10px;">
+        <code>{{ doc.relative_path }}</code>
+    </div>
 {% endblock %}
-
 {% block nav %}
-<span style="color: #ecf0f1;">|</span>
-<a href="#inputs">Inputs</a>
-<a href="#outputs">Outputs</a>
-{% if doc.has_workflow and doc.workflow.has_calls %}
-<a href="#calls">Calls</a>
-{% endif %}
-{% if doc.has_workflow and doc.workflow.has_docker_images %}
-<a href="#docker-images">Images</a>
-{% endif %}
-{% if doc.has_tasks %}
-<a href="#tasks">Tasks</a>
-{% endif %}
-{% if doc.has_imports %}
-<a href="#imports">Imports</a>
-{% endif %}
+    <span style="color: #ecf0f1;">|</span>
+    <a href="#inputs">Inputs</a>
+    <a href="#outputs">Outputs</a>
+    {% if doc.has_workflow and doc.workflow.has_calls %}<a href="#calls">Calls</a>{% endif %}
+    {% if doc.has_workflow and doc.workflow.has_docker_images %}<a href="#docker-images">Images</a>{% endif %}
+    {% if doc.has_tasks %}<a href="#tasks">Tasks</a>{% endif %}
+    {% if doc.has_imports %}<a href="#imports">Imports</a>{% endif %}
 {% endblock %}
-
 {% block content %}
-<div class="card">
-    <h2>
-        {% if doc.has_workflow %}
-        {{ workflow_badge() }}
-        {% elif doc.has_tasks %}
-        {{ task_badge() }}
-        {% else %}
-        {{ file_badge() }}
-        {% endif %}
-        {{ doc.name }}
-    </h2>
-    
-    {% if doc.description %}
-    <p class="description">{{ doc.description }}</p>
+    <div class="card">
+        <h2>
+            {% if doc.has_workflow %}
+                {{ workflow_badge() }}
+            {% elif doc.has_tasks %}
+                {{ task_badge() }}
+            {% else %}
+                {{ file_badge() }}
+            {% endif %}
+            {{ doc.name }}
+        </h2>
+        {% if doc.description %}<p class="description">{{ doc.description }}</p>{% endif %}
+        {{ document_info_table(doc) }}
+    </div>
+    {% if doc.has_imports %}
+        <div class="card section" id="imports">
+            <h2>Imports</h2>
+            {{ imports_table(doc.imports) }}
+        </div>
     {% endif %}
-    
-    {{ document_info_table(doc) }}
-</div>
-
-{% if doc.has_imports %}
-<div class="card section" id="imports">
-    <h2>Imports</h2>
-    {{ imports_table(doc.imports) }}
-</div>
-{% endif %}
-
-{% if doc.has_workflow %}
-<div class="card section" id="workflow">
-    {{ workflow_section_header(doc.workflow.name, doc.workflow.has_graph, doc.source_code) }}
-    
-    {% if doc.workflow.description %}
-    <p class="description">{{ doc.workflow.description }}</p>
+    {% if doc.has_workflow %}
+        <div class="card section" id="workflow">
+            {{ workflow_section_header(doc.workflow.name, doc.workflow.has_graph, doc.source_code) }}
+            {% if doc.workflow.description %}<p class="description">{{ doc.workflow.description }}</p>{% endif %}
+            {% if workflow_call_info %}{{ subworkflow_usage_banner(workflow_call_info, doc.relative_path) }}{% endif %}
+            {% if doc.workflow.has_inputs %}
+                <h3 id="inputs">Inputs</h3>
+                {{ inputs_table(doc.workflow.inputs) }}
+            {% endif %}
+            {% if doc.workflow.has_outputs %}
+                <h3 id="outputs">Outputs</h3>
+                {{ outputs_table(doc.workflow.outputs) }}
+            {% endif %}
+            {% if doc.workflow.has_calls %}
+                <h3 id="calls">Calls</h3>
+                <p class="description">This workflow calls the following tasks or subworkflows:</p>
+                {% for call in doc.workflow.calls %}{{ call_block(call, doc.relative_path) }}{% endfor %}
+            {% endif %}
+            {% if doc.workflow.has_docker_images %}
+                <h3 id="docker-images">Images</h3>
+                <p class="description">Container images used by tasks in this workflow:</p>
+                {{ docker_images_grid(doc.workflow.docker_images) }}
+            {% endif %}
+        </div>
     {% endif %}
-    
-    {% if workflow_call_info %}
-    {{ subworkflow_usage_banner(workflow_call_info, doc.relative_path) }}
+    {% if doc.has_tasks %}
+        <div class="section" id="tasks">
+            {{ tasks_section_header(doc.source_code) }}
+            {% for task in doc.tasks %}{{ task_card(task) }}{% endfor %}
+        </div>
     {% endif %}
-    
-    {% if doc.workflow.has_inputs %}
-    <h3 id="inputs">Inputs</h3>
-    {{ inputs_table(doc.workflow.inputs) }}
+    <div class="card section">
+        <a href="{{ root_path }}index.html">← Back to Index</a>
+    </div>
+    {% if doc.has_workflow and doc.workflow.has_graph %}
+        {{ graph_modal(doc.workflow.name, doc.workflow.mermaid_graph) }}
     {% endif %}
-    
-    {% if doc.workflow.has_outputs %}
-    <h3 id="outputs">Outputs</h3>
-    {{ outputs_table(doc.workflow.outputs) }}
-    {% endif %}
-    
-    {% if doc.workflow.has_calls %}
-    <h3 id="calls">Calls</h3>
-    <p class="description">This workflow calls the following tasks or subworkflows:</p>
-    
-    {% for call in doc.workflow.calls %}
-    {{ call_block(call, doc.relative_path) }}
-    {% endfor %}
-    {% endif %}
-    
-    {% if doc.workflow.has_docker_images %}
-    <h3 id="docker-images">Images</h3>
-    <p class="description">Container images used by tasks in this workflow:</p>
-    
-    {{ docker_images_grid(doc.workflow.docker_images) }}
-    {% endif %}
-</div>
-{% endif %}
-
-{% if doc.has_tasks %}
-<div class="section" id="tasks">
-    {{ tasks_section_header(doc.source_code) }}
-    
-    {% for task in doc.tasks %}
-    {{ task_card(task) }}
-    {% endfor %}
-</div>
-{% endif %}
-
-<div class="card section">
-    <a href="{{ root_path }}index.html">← Back to Index</a>
-</div>
-
-{% if doc.has_workflow and doc.workflow.has_graph %}
-{{ graph_modal(doc.workflow.name, doc.workflow.mermaid_graph) }}
-{% endif %}
-
-{% if doc.source_code %}
-{{ source_modal(doc.name, doc.source_code) }}
-{% endif %}
-
+    {% if doc.source_code %}{{ source_modal(doc.name, doc.source_code) }}{% endif %}
 {% endblock %}

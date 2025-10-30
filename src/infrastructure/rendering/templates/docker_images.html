@@ -2,178 +2,162 @@
 {% from "macros/badges.html" import external_badge, count_items %}
 {% from "components/stats.html" import stats_grid, stat_card, stat_card_highlighted %}
 {% from "components/tabs.html" import tabs_container, tab_button, tab_content, tab_notice %}
-
 {% block title %}Docker Inventory - WDL Documentation{% endblock %}
-
 {% block header %}Docker Inventory{% endblock %}
-
 {% block content %}
-<div class="card">
-    <h2>Overview</h2>
-    {% call stats_grid() %}
-        {{ stat_card(total_repositories_internal, 'Internal Repositories') }}
-        {{ stat_card(total_images_internal, 'Internal Images') }}
-        {{ stat_card(total_usages_internal, 'Internal Usages') }}
-        {% if has_external %}
-        {{ stat_card_highlighted(total_repositories_external, 'External Repositories') }}
-        {{ stat_card_highlighted(total_images_external, 'External Images') }}
-        {{ stat_card_highlighted(total_usages_external, 'External Usages') }}
-        {% endif %}
+    <div class="card">
+        <h2>Overview</h2>
+        {% call stats_grid() %}
+            {{ stat_card(total_repositories_internal, 'Internal Repositories') }}
+            {{ stat_card(total_images_internal, 'Internal Images') }}
+            {{ stat_card(total_usages_internal, 'Internal Usages') }}
+            {% if has_external %}
+                {{ stat_card_highlighted(total_repositories_external, 'External Repositories') }}
+                {{ stat_card_highlighted(total_images_external, 'External Images') }}
+                {{ stat_card_highlighted(total_usages_external, 'External Usages') }}
+            {% endif %}
+        {% endcall %}
+    </div>
+    <div class="card">
+        <h2>🔍 Search Images</h2>
+        <div class="search-container">
+            <input type="text"
+                   id="dockerSearchBox"
+                   class="search-box"
+                   placeholder="Search by image name, repository, or task..."
+                   autocomplete="off">
+            <span class="search-icon">🔍</span>
+        </div>
+    </div>
+    <!-- Tabs Navigation -->
+    {% if has_external %}
+        {% call tabs_container() %}
+            {{ tab_button('internal', '📁', 'Internal', total_repositories_internal, active=true, onclick_function='switchDockerTab') }}
+            {{ tab_button('external', '📦', 'External', total_repositories_external, onclick_function='switchDockerTab') }}
+        {% endcall %}
+    {% endif %}
+    <!-- Internal Tab Content -->
+    {% call tab_content('internal', active=true) %}
+        <div class="docker-inventory">
+            {% for repo_name, repo_data in repositories_internal.items() %}
+                {% set repo_index = loop.index0 %}
+                <div class="card docker-repository" data-repo="{{ repo_name }}">
+                    <div class="repository-header">
+                        <h2>
+                            <span class="repo-icon">📦</span>
+                            {{ repo_name }}
+                            {{ count_items(repo_data.image_count, 'image') }}
+                        </h2>
+                    </div>
+                    <div class="docker-images-list">
+                        {% for image_data in repo_data.images %}
+                            {% set image_index = loop.index0 %}
+                            {% set unique_id = "img_" ~ repo_index ~ "_" ~ image_index %}
+                            <div class="docker-image-item" data-image="{{ image_data.full_name }}">
+                                <div class="image-header" onclick="toggleImageDetails('{{ unique_id }}')">
+                                    <div class="image-info">
+                                        <span class="image-icon">🐳</span>
+                                        <div class="image-details">
+                                            <strong class="image-name">{{ image_data.name }}</strong>
+                                            {% if image_data.tag %}<span class="image-tag">:{{ image_data.tag }}</span>{% endif %}
+                                            {% if image_data.is_parameterized %}<span class="badge badge-warning">Parameterized</span>{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="image-stats">
+                                        <span class="task-count">{{ image_data.task_count }} task{{ 's' if image_data.task_count != 1 else '' }}</span>
+                                        <span class="expand-icon" id="icon_{{ unique_id }}">▶</span>
+                                    </div>
+                                </div>
+                                <div class="image-tasks-container"
+                                     id="tasks_{{ unique_id }}"
+                                     style="display: none">
+                                    <div class="tasks-header">
+                                        <h4>Tasks using this image:</h4>
+                                    </div>
+                                    <ul class="tasks-list">
+                                        {% for task_info in image_data.tasks %}
+                                            <li class="task-item">
+                                                <a href="{{ task_info.workflow_url }}" class="task-link">
+                                                    <span class="task-name">{{ task_info.task_name }}</span>
+                                                    <span class="workflow-name">in {{ task_info.workflow_name }}</span>
+                                                </a>
+                                                <span class="file-path">{{ task_info.file_path }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     {% endcall %}
-</div>
-
-<div class="card">
-    <h2>🔍 Search Images</h2>
-    <div class="search-container">
-        <input 
-            type="text" 
-            id="dockerSearchBox" 
-            class="search-box" 
-            placeholder="Search by image name, repository, or task..."
-            autocomplete="off"
-        >
-        <span class="search-icon">🔍</span>
-    </div>
-</div>
-
-<!-- Tabs Navigation -->
-{% if has_external %}
-{% call tabs_container() %}
-    {{ tab_button('internal', '📁', 'Internal', total_repositories_internal, active=true, onclick_function='switchDockerTab') }}
-    {{ tab_button('external', '📦', 'External', total_repositories_external, onclick_function='switchDockerTab') }}
-{% endcall %}
-{% endif %}
-
-<!-- Internal Tab Content -->
-{% call tab_content('internal', active=true) %}
-<div class="docker-inventory">
-    {% for repo_name, repo_data in repositories_internal.items() %}
-    {% set repo_index = loop.index0 %}
-    <div class="card docker-repository" data-repo="{{ repo_name }}">
-        <div class="repository-header">
-            <h2>
-                <span class="repo-icon">📦</span>
-                {{ repo_name }}
-                {{ count_items(repo_data.image_count, 'image') }}
-            </h2>
-        </div>
-        
-        <div class="docker-images-list">
-            {% for image_data in repo_data.images %}
-            {% set image_index = loop.index0 %}
-            {% set unique_id = "img_" ~ repo_index ~ "_" ~ image_index %}
-            <div class="docker-image-item" data-image="{{ image_data.full_name }}">
-                <div class="image-header" onclick="toggleImageDetails('{{ unique_id }}')">
-                    <div class="image-info">
-                        <span class="image-icon">🐳</span>
-                        <div class="image-details">
-                            <strong class="image-name">{{ image_data.name }}</strong>
-                            {% if image_data.tag %}
-                            <span class="image-tag">:{{ image_data.tag }}</span>
-                            {% endif %}
-                            {% if image_data.is_parameterized %}
-                            <span class="badge badge-warning">Parameterized</span>
-                            {% endif %}
+    <!-- External Tab Content -->
+    {% if has_external %}
+        {% call tab_content('external') %}
+            {{ tab_notice('⚠️', 'Third-Party Docker Images', 'These Docker images are used by external workflows and tasks from third-party sources.') }}
+            <div class="docker-inventory">
+                {% for repo_name, repo_data in repositories_external.items() %}
+                    {% set repo_index = loop.index0 + 1000 %}
+                    <div class="card docker-repository" data-repo="{{ repo_name }}">
+                        <div class="repository-header">
+                            <h2>
+                                <span class="repo-icon">📦</span>
+                                {{ repo_name }}
+                                {{ count_items(repo_data.image_count, 'image') }}
+                                {{ external_badge() }}
+                            </h2>
+                        </div>
+                        <div class="docker-images-list">
+                            {% for image_data in repo_data.images %}
+                                {% set image_index = loop.index0 %}
+                                {% set unique_id = "img_" ~ repo_index ~ "_" ~ image_index %}
+                                <div class="docker-image-item" data-image="{{ image_data.full_name }}">
+                                    <div class="image-header" onclick="toggleImageDetails('{{ unique_id }}')">
+                                        <div class="image-info">
+                                            <span class="image-icon">🐳</span>
+                                            <div class="image-details">
+                                                <strong class="image-name">{{ image_data.name }}</strong>
+                                                {% if image_data.tag %}<span class="image-tag">:{{ image_data.tag }}</span>{% endif %}
+                                                {% if image_data.is_parameterized %}
+                                                    <span class="badge badge-warning">Parameterized</span>
+                                                    {% if image_data.default_value %}
+                                                        <span class="badge badge-info"
+                                                              title="Default value used when parameter is not provided">Default: {{ image_data.default_value }}</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="image-stats">
+                                            <span class="task-count">{{ image_data.task_count }} task{{ 's' if image_data.task_count != 1 else '' }}</span>
+                                            <span class="expand-icon" id="icon_{{ unique_id }}">▶</span>
+                                        </div>
+                                    </div>
+                                    <div class="image-tasks-container"
+                                         id="tasks_{{ unique_id }}"
+                                         style="display: none">
+                                        <div class="tasks-header">
+                                            <h4>Tasks using this image:</h4>
+                                        </div>
+                                        <ul class="tasks-list">
+                                            {% for task_info in image_data.tasks %}
+                                                <li class="task-item">
+                                                    <a href="{{ task_info.workflow_url }}" class="task-link">
+                                                        <span class="task-name">{{ task_info.task_name }}</span>
+                                                        <span class="workflow-name">in {{ task_info.workflow_name }}</span>
+                                                    </a>
+                                                    <span class="file-path">{{ task_info.file_path }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    <div class="image-stats">
-                        <span class="task-count">{{ image_data.task_count }} task{{ 's' if image_data.task_count != 1 else '' }}</span>
-                        <span class="expand-icon" id="icon_{{ unique_id }}">▶</span>
-                    </div>
-                </div>
-                
-                <div class="image-tasks-container" id="tasks_{{ unique_id }}" style="display: none;">
-                    <div class="tasks-header">
-                        <h4>Tasks using this image:</h4>
-                    </div>
-                    <ul class="tasks-list">
-                        {% for task_info in image_data.tasks %}
-                        <li class="task-item">
-                            <a href="{{ task_info.workflow_url }}" class="task-link">
-                                <span class="task-name">{{ task_info.task_name }}</span>
-                                <span class="workflow-name">in {{ task_info.workflow_name }}</span>
-                            </a>
-                            <span class="file-path">{{ task_info.file_path }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% endcall %}
-
-<!-- External Tab Content -->
-{% if has_external %}
-{% call tab_content('external') %}
-    {{ tab_notice('⚠️', 'Third-Party Docker Images', 'These Docker images are used by external workflows and tasks from third-party sources.') }}
-    
-<div class="docker-inventory">
-    {% for repo_name, repo_data in repositories_external.items() %}
-    {% set repo_index = loop.index0 + 1000 %}
-    <div class="card docker-repository" data-repo="{{ repo_name }}">
-        <div class="repository-header">
-            <h2>
-                <span class="repo-icon">📦</span>
-                {{ repo_name }}
-                {{ count_items(repo_data.image_count, 'image') }}
-                {{ external_badge() }}
-            </h2>
-        </div>
-        
-        <div class="docker-images-list">
-            {% for image_data in repo_data.images %}
-            {% set image_index = loop.index0 %}
-            {% set unique_id = "img_" ~ repo_index ~ "_" ~ image_index %}
-            <div class="docker-image-item" data-image="{{ image_data.full_name }}">
-                <div class="image-header" onclick="toggleImageDetails('{{ unique_id }}')">
-                    <div class="image-info">
-                        <span class="image-icon">🐳</span>
-                        <div class="image-details">
-                            <strong class="image-name">{{ image_data.name }}</strong>
-                            {% if image_data.tag %}
-                            <span class="image-tag">:{{ image_data.tag }}</span>
-                            {% endif %}
-                            {% if image_data.is_parameterized %}
-                            <span class="badge badge-warning">Parameterized</span>
-                            {% if image_data.default_value %}
-                            <span class="badge badge-info" title="Default value used when parameter is not provided">Default: {{ image_data.default_value }}</span>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="image-stats">
-                        <span class="task-count">{{ image_data.task_count }} task{{ 's' if image_data.task_count != 1 else '' }}</span>
-                        <span class="expand-icon" id="icon_{{ unique_id }}">▶</span>
-                    </div>
-                </div>
-                
-                <div class="image-tasks-container" id="tasks_{{ unique_id }}" style="display: none;">
-                    <div class="tasks-header">
-                        <h4>Tasks using this image:</h4>
-                    </div>
-                    <ul class="tasks-list">
-                        {% for task_info in image_data.tasks %}
-                        <li class="task-item">
-                            <a href="{{ task_info.workflow_url }}" class="task-link">
-                                <span class="task-name">{{ task_info.task_name }}</span>
-                                <span class="workflow-name">in {{ task_info.workflow_name }}</span>
-                            </a>
-                            <span class="file-path">{{ task_info.file_path }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% endcall %}
-{% endif %}
-
+        {% endcall %}
+    {% endif %}
 {% endblock %}

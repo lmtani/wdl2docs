@@ -2,188 +2,193 @@
 {% from "macros/badges.html" import workflow_badge, task_badge, call_badge, external_badge %}
 {% from "macros/tables.html" import inputs_table, outputs_table, runtime_table, imports_table, document_info_table %}
 {% from "components/buttons.html" import graph_button, source_button, action_buttons %}
-
 {# Header de seção do workflow com botões de ação #}
 {% macro workflow_section_header(workflow_name, has_graph=false, has_source=false) %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-    <h2 style="margin: 0;">Workflow: {{ workflow_name }}</h2>
-    {% call action_buttons() %}
-        {% if has_graph %}
-        {{ graph_button() }}
-        {% endif %}
-        {% if has_source %}
-        {{ source_button() }}
-        {% endif %}
-    {% endcall %}
-</div>
+    <div style="display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px">
+        <h2 style="margin: 0;">Workflow: {{ workflow_name }}</h2>
+        {% call action_buttons() %}
+            {% if has_graph %}{{ graph_button() }}{% endif %}
+            {% if has_source %}{{ source_button() }}{% endif %}
+        {% endcall %}
+    </div>
 {%- endmacro %}
-
 {# Header de seção de tasks com botão de ação #}
 {% macro tasks_section_header(has_source=false) %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-    <h2 style="margin: 0;">Tasks</h2>
-    {% if has_source %}
-    {{ source_button() }}
-    {% endif %}
-</div>
+    <div style="display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px">
+        <h2 style="margin: 0;">Tasks</h2>
+        {% if has_source %}{{ source_button() }}{% endif %}
+    </div>
 {%- endmacro %}
-
 {# Banner de informação de uso como subworkflow #}
 {% macro subworkflow_usage_banner(workflow_call_info, doc_relative_path) %}
-<div style="margin: 16px 0; padding: 12px; background: linear-gradient(135deg, #1f6feb 0%, #8b5cf6 100%); border-radius: 8px; border-left: 4px solid #a371f7;">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        <strong style="font-size: 14px;">Subworkflow Usage</strong>
+    <div style="margin: 16px 0;
+                padding: 12px;
+                background: linear-gradient(135deg, #1f6feb 0%, #8b5cf6 100%);
+                border-radius: 8px;
+                border-left: 4px solid #a371f7">
+        <div style="display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 8px">
+            <svg width="20"
+                 height="20"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 style="flex-shrink: 0">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <strong style="font-size: 14px;">Subworkflow Usage</strong>
+        </div>
+        <p style="margin: 0; font-size: 14px;">
+            This workflow is called as a subworkflow by <strong>{{ workflow_call_info.count }}</strong> other workflow{{ 's' if workflow_call_info.count != 1 else '' }}:
+        </p>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
+            {% for caller in workflow_call_info.workflows %}
+                <li style="margin: 4px 0;">
+                    <a href="{{ caller.url | relative_link(doc_relative_path) }}"
+                       style="color: #ecf0f1;
+                              text-decoration: underline">{{ caller.name }}</a>
+                    <span style="opacity: 0.8;"> - <code style="background: rgba(0,0,0,0.2);
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-size: 12px">{{ caller.file_path }}</code></span>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
-    <p style="margin: 0; font-size: 14px;">
-        This workflow is called as a subworkflow by <strong>{{ workflow_call_info.count }}</strong> other workflow{{ 's' if workflow_call_info.count != 1 else '' }}:
-    </p>
-    <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
-        {% for caller in workflow_call_info.workflows %}
-        <li style="margin: 4px 0;">
-            <a href="{{ caller.url | relative_link(doc_relative_path) }}" style="color: #ecf0f1; text-decoration: underline;">
-                {{ caller.name }}
-            </a>
-            <span style="opacity: 0.8;"> - <code style="background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 3px; font-size: 12px;">{{ caller.file_path }}</code></span>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
 {%- endmacro %}
-
 {# Bloco de call (chamada de task ou workflow) #}
 {% macro call_block(call, doc_relative_path) %}
-<div class="call-block">
-    <h4>
-        {{ call_badge() }}
-        {% if call.is_workflow_call %}
-            {{ workflow_badge() }}
-        {% else %}
-            {{ task_badge() }}
-        {% endif %}
-        {% if call.link_target %}
-            {% if call.is_local %}
-                <a href="{{ call.link_target }}" class="call-link call-link-local">
-                    <code>{{ call.display_name }}</code>
-                </a>
+    <div class="call-block">
+        <h4>
+            {{ call_badge() }}
+            {% if call.is_workflow_call %}
+                {{ workflow_badge() }}
             {% else %}
-                <a href="{{ call.link_target | relative_link(doc_relative_path) }}" class="call-link call-link-external">
-                    <code>{{ call.display_name }}</code>
-                    <span class="external-icon" title="Opens in another page">↗</span>
-                </a>
+                {{ task_badge() }}
             {% endif %}
+            {% if call.link_target %}
+                {% if call.is_local %}
+                    <a href="{{ call.link_target }}" class="call-link call-link-local">
+                        <code>{{ call.display_name }}</code>
+                    </a>
+                {% else %}
+                    <a href="{{ call.link_target | relative_link(doc_relative_path) }}"
+                       class="call-link call-link-external">
+                        <code>{{ call.display_name }}</code>
+                        <span class="external-icon" title="Opens in another page">↗</span>
+                    </a>
+                {% endif %}
+            {% else %}
+                <code>{{ call.display_name }}</code>
+            {% endif %}
+            {% if call.alias %}<span class="call-target">→ {{ call.task_or_workflow }}</span>{% endif %}
+        </h4>
+        {% if call.inputs_mapping %}
+            <details>
+                <summary>Input Mappings ({{ call.inputs_mapping|length }})</summary>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Input</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in call.inputs_mapping.items() %}
+                                <tr>
+                                    <td>
+                                        <code>{{ key }}</code>
+                                    </td>
+                                    <td>
+                                        <code>{{ value }}</code>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
         {% else %}
-            <code>{{ call.display_name }}</code>
+            <p class="description" style="margin-top: 10px;">No explicit input mappings</p>
         {% endif %}
-        {% if call.alias %}
-        <span class="call-target">→ {{ call.task_or_workflow }}</span>
-        {% endif %}
-    </h4>
-    
-    {% if call.inputs_mapping %}
-    <details>
-        <summary>
-            Input Mappings ({{ call.inputs_mapping|length }})
-        </summary>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Input</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for key, value in call.inputs_mapping.items() %}
-                    <tr>
-                        <td><code>{{ key }}</code></td>
-                        <td><code>{{ value }}</code></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </details>
-    {% else %}
-    <p class="description" style="margin-top: 10px;">No explicit input mappings</p>
-    {% endif %}
-</div>
+    </div>
 {%- endmacro %}
-
 {# Grid de imagens Docker #}
 {% macro docker_images_grid(docker_images) %}
-<div class="docker-images-grid">
-    {% for docker in docker_images %}
-    <div class="docker-card {% if docker.is_parameterized %}docker-parameterized{% endif %}">
-        <div class="docker-header">
-            <span class="docker-icon">🐳</span>
-            {% if docker.is_parameterized %}
-            <strong>Parameterized Image</strong>
-            {% else %}
-            <strong>{{ docker.short_name }}</strong>
-            {% endif %}
-        </div>
-        <div class="docker-body">
-            {% if docker.is_parameterized %}
-            <div class="docker-badge docker-badge-param">
-                <span>⚙️ Parameterized</span>
+    <div class="docker-images-grid">
+        {% for docker in docker_images %}
+            <div class="docker-card {% if docker.is_parameterized %}docker-parameterized{% endif %}">
+                <div class="docker-header">
+                    <span class="docker-icon">🐳</span>
+                    {% if docker.is_parameterized %}
+                        <strong>Parameterized Image</strong>
+                    {% else %}
+                        <strong>{{ docker.short_name }}</strong>
+                    {% endif %}
+                </div>
+                <div class="docker-body">
+                    {% if docker.is_parameterized %}
+                        <div class="docker-badge docker-badge-param">
+                            <span>⚙️ Parameterized</span>
+                        </div>
+                        <p class="docker-image-text">
+                            <small>Configured via input:</small>
+                            <br>
+                            <code>{{ docker.parameter_name or 'runtime parameter' }}</code>
+                        </p>
+                    {% else %}
+                        <p class="docker-image-text">
+                            <code>{{ docker.image }}</code>
+                        </p>
+                    {% endif %}
+                    <div class="docker-tasks">
+                        <strong>Used by {{ docker.task_count }} task{{ 's' if docker.task_count != 1 else '' }}:</strong>
+                        <ul class="task-list">
+                            {% for task_name in docker.task_names %}
+                                <li>
+                                    <code>{{ task_name }}</code>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <p class="docker-image-text">
-                <small>Configured via input:</small><br>
-                <code>{{ docker.parameter_name or 'runtime parameter' }}</code>
-            </p>
-            {% else %}
-            <p class="docker-image-text">
-                <code>{{ docker.image }}</code>
-            </p>
-            {% endif %}
-            
-            <div class="docker-tasks">
-                <strong>Used by {{ docker.task_count }} task{{ 's' if docker.task_count != 1 else '' }}:</strong>
-                <ul class="task-list">
-                    {% for task_name in docker.task_names %}
-                    <li><code>{{ task_name }}</code></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 {%- endmacro %}
-
 {# Task completo com todas as seções #}
 {% macro task_card(task) %}
-<div class="card" id="task-{{ task.name }}" style="margin-bottom: 20px;">
-    <h3>{{ task_badge() }} {{ task.name }}</h3>
-    
-    {% if task.description %}
-    <p class="description">{{ task.description }}</p>
-    {% endif %}
-    
-    {% if task.has_inputs %}
-    <h4>Inputs</h4>
-    {{ inputs_table(task.inputs) }}
-    {% endif %}
-    
-    {% if task.has_command %}
-    <h4>Command</h4>
-    <pre><code class="language-bash">{{ task.command.formatted_command }}</code></pre>
-    {% endif %}
-    
-    {% if task.has_outputs %}
-    <h4>Outputs</h4>
-    {{ outputs_table(task.outputs) }}
-    {% endif %}
-    
-    {% if task.has_runtime %}
-    <h4>Runtime</h4>
-    {{ runtime_table(task.runtime) }}
-    {% endif %}
-</div>
+    <div class="card" id="task-{{ task.name }}" style="margin-bottom: 20px;">
+        <h3>{{ task_badge() }} {{ task.name }}</h3>
+        {% if task.description %}<p class="description">{{ task.description }}</p>{% endif %}
+        {% if task.has_inputs %}
+            <h4>Inputs</h4>
+            {{ inputs_table(task.inputs) }}
+        {% endif %}
+        {% if task.has_command %}
+            <h4>Command</h4>
+            <pre><code class="language-bash">{{ task.command.formatted_command }}</code></pre>
+        {% endif %}
+        {% if task.has_outputs %}
+            <h4>Outputs</h4>
+            {{ outputs_table(task.outputs) }}
+        {% endif %}
+        {% if task.has_runtime %}
+            <h4>Runtime</h4>
+            {{ runtime_table(task.runtime) }}
+        {% endif %}
+    </div>
 {%- endmacro %}

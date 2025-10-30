@@ -1,37 +1,29 @@
 {# Componente de estatísticas reutilizável #}
-
 {# Grid de estatísticas com cards #}
 {% macro stats_grid() %}
-<div class="stats">
-    {{ caller() }}
-</div>
+    <div class="stats">{{ caller() }}</div>
 {%- endmacro %}
-
 {# Card individual de estatística #}
 {% macro stat_card(number, label, style='') %}
-<div class="stat-card" {% if style %}style="{{ style }}"{% endif %}>
-    <div class="number">{{ number }}</div>
-    <div class="label">{{ label }}</div>
-</div>
+    <div class="stat-card" {% if style %}style="{{ style }}"{% endif %}>
+        <div class="number">{{ number }}</div>
+        <div class="label">{{ label }}</div>
+    </div>
 {%- endmacro %}
-
 {# Card de estatística com destaque (warning/error) #}
 {% macro stat_card_highlighted(number, label, color='var(--warning)') %}
-{{ stat_card(number, label, 'border-left: 3px solid ' ~ color ~ ';') }}
+    {{ stat_card(number, label, 'border-left: 3px solid ' ~ color ~ ';') }}
 {%- endmacro %}
-
 {# Componente de busca reutilizável #}
 {% macro search_box(id, placeholder) %}
-<div class="search-container">
-    <input 
-        type="text" 
-        id="{{ id }}" 
-        class="search-box" 
-        placeholder="{{ placeholder }}"
-        autocomplete="off"
-    >
-    <span class="search-icon">🔍</span>
-</div>
-<div id="{{ id }}Stats" class="search-stats"></div>
-<div id="{{ id }}Results" class="search-results"></div>
+    <div class="search-container">
+        <input type="text"
+               id="{{ id }}"
+               class="search-box"
+               placeholder="{{ placeholder }}"
+               autocomplete="off">
+        <span class="search-icon">🔍</span>
+    </div>
+    <div id="{{ id }}Stats" class="search-stats"></div>
+    <div id="{{ id }}Results" class="search-results"></div>
 {%- endmacro %}
