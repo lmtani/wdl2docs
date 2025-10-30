@@ -75,48 +75,7 @@ class HtmlGenerator:
         output_file.write_text(html_content, encoding="utf-8")
         logger.debug(f"Generated {output_file}")
 
-        # Generate graph page if workflow has a graph
-        if doc.has_workflow and doc.workflow.has_graph:
-            self.generate_graph_page(doc, root_rel)
-
         return output_file
-
-    def generate_graph_page(self, doc: WDLDocument, root_rel: str) -> Path:
-        """
-        Generate separate graph page for a workflow.
-
-        Args:
-            doc: WDLDocument with workflow
-            root_rel: Relative path to root
-
-        Returns:
-            Path to generated graph HTML file
-        """
-        # Normalize path
-        relative_path = self.renderer._normalize_path(doc.relative_path)
-        stem = relative_path.stem
-        graph_filename = f"{stem}-graph.html"
-        graph_file = self.output_dir / relative_path.parent / graph_filename
-
-        # Back to document link
-        doc_filename = relative_path.with_suffix(".html").name
-
-        # Render template
-        html_content = self.renderer.render_template(
-            "graph.html",
-            {
-                "workflow_name": doc.workflow.name,
-                "mermaid_graph": doc.workflow.mermaid_graph,
-                "root_path": root_rel,
-                "back_to_doc": doc_filename,
-            },
-        )
-
-        # Write HTML file
-        graph_file.write_text(html_content, encoding="utf-8")
-        logger.debug(f"Generated graph page {graph_file}")
-
-        return graph_file
 
     def generate_index(
         self,

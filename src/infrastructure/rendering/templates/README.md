@@ -21,7 +21,6 @@ src/infrastructure/rendering/templates/
 ├── index.html           # Index page
 ├── document.html        # WDL document page
 ├── docker_images.html   # Docker images inventory
-└── graph.html           # Graph visualization page
 ```
 
 ## Organization Principles

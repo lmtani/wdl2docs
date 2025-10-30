@@ -32,7 +32,6 @@ def templates_dir(temp_dir):
     (templates / "document.html").write_text("<html><body>{{ doc.name }}</body></html>")
     (templates / "index.html").write_text("<html><body>Index</body></html>")
     (templates / "docker_images.html").write_text("<html><body>Docker Images</body></html>")
-    (templates / "graph.html").write_text("<html><body>Graph</body></html>")
 
     return templates
 
@@ -168,21 +167,6 @@ def should_create_output_directory_structure(html_generator, temp_dir):
     assert result_path.exists()
     assert result_path.parent.exists()
     assert result_path.parent.name == "nested"
-
-
-def should_generate_graph_page_when_workflow_has_graph(html_generator, sample_wdl_document):
-    """Test generating separate graph page for workflow with graph."""
-    # Arrange
-    doc = sample_wdl_document
-
-    # Act
-    doc_path = html_generator.generate_document_page(doc)
-
-    # Assert
-    graph_path = doc_path.parent / "workflow-graph.html"
-    assert graph_path.exists()
-    content = graph_path.read_text()
-    assert "Graph" in content
 
 
 def should_not_generate_graph_page_when_workflow_has_no_graph(html_generator, temp_dir):
