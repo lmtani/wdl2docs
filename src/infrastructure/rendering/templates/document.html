@@ -33,6 +33,31 @@
         </h2>
         {% if doc.description %}<p class="description">{{ doc.description }}</p>{% endif %}
         {{ document_info_table(doc) }}
+        
+        {% if doc.has_tasks %}
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #34495e;">
+            <h3 style="margin-bottom: 15px; font-size: 16px; color: #ecf0f1;">
+                <span style="margin-right: 8px;">📋</span>Tasks in this document
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for task in doc.tasks %}
+                <li style="margin-bottom: 8px;">
+                    <a href="#task-{{ task.name }}" 
+                       style="color: #3498db; text-decoration: none; display: block; padding: 8px 12px; border-radius: 6px; border-left: 3px solid #3498db; background-color: rgba(52, 152, 219, 0.05); transition: all 0.2s;"
+                       onmouseover="this.style.backgroundColor='rgba(52, 152, 219, 0.15)'; this.style.borderLeftColor='#5dade2';" 
+                       onmouseout="this.style.backgroundColor='rgba(52, 152, 219, 0.05)'; this.style.borderLeftColor='#3498db';">
+                        <div style="display: flex; align-items: start; gap: 10px;">
+                            <span style="font-family: 'Courier New', monospace; font-weight: 600; color: #3498db; flex-shrink: 0;">{{ task.name }}</span>
+                            {% if task.description %}
+                            <span style="color: #95a5a6; font-size: 13px; line-height: 1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
     {% if doc.has_imports %}
         <div class="card section" id="imports">
