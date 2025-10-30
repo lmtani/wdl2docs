@@ -6,11 +6,9 @@
     <title>{{ workflow_name }} - Workflow Graph</title>
     <link rel="icon" type="image/png" href="{{ root_path }}static/logo.png">
     <link rel="stylesheet" href="{{ root_path }}static/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-    <script>
-        let panZoomInstance = null;
-        
+    <!-- Mermaid.js for workflow graphs -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ 
             startOnLoad: true,
             theme: 'dark',
@@ -43,6 +41,12 @@
                 htmlLabels: true
             }
         });
+        window.mermaid = mermaid;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <script type="module">
+        // Importar módulo de gerenciamento de pan-zoom para página standalone
+        let panZoomInstance = null;
 
         // Initialize pan-zoom after mermaid renders
         window.addEventListener('load', () => {
@@ -77,32 +81,33 @@
             }, 100);
         });
 
-        function resetZoom() {
+        // Expose zoom controls globally for inline handlers
+        window.resetZoom = function() {
             if (panZoomInstance) {
                 panZoomInstance.resetZoom();
                 panZoomInstance.center();
                 panZoomInstance.fit();
             }
-        }
+        };
 
-        function zoomIn() {
+        window.zoomIn = function() {
             if (panZoomInstance) {
                 panZoomInstance.zoomIn();
             }
-        }
+        };
 
-        function zoomOut() {
+        window.zoomOut = function() {
             if (panZoomInstance) {
                 panZoomInstance.zoomOut();
             }
-        }
+        };
 
-        function fitToScreen() {
+        window.fitToScreen = function() {
             if (panZoomInstance) {
                 panZoomInstance.fit();
                 panZoomInstance.center();
             }
-        }
+        };
     </script>
     <style>
         body {

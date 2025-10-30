@@ -22,7 +22,7 @@ def templates_dir(temp_dir):
 
     # Create some sample assets
     (static_dir / "style.css").write_text("body { color: blue; }")
-    (static_dir / "script.js").write_text("console.log('hello');")
+    (static_dir / "app.js").write_text("console.log('hello');")
 
     return templates
 

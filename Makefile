@@ -31,3 +31,8 @@ fix: ## Auto-fix linting issues and format code
 test: ## Run tests with pytest
 	@echo "🧪 Running tests..."
 	uv run pytest -v --cov=src tests --cov-report=term
+
+serve: ## Serve generated documentation on localhost
+	@echo "🌐 Starting documentation server..."
+	python .scripts/serve_docs.py
+

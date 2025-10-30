@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
     <!-- Mermaid.js for workflow graphs -->
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ 
+        mermaid.initialize({
             startOnLoad: true,
             theme: 'dark',
             themeVariables: {
@@ -41,8 +42,11 @@
         });
         window.mermaid = mermaid;
     </script>
-    <script src="{{ root_path }}static/script.js"></script>
+
+    <!-- Módulos da aplicação -->
+    <script type="module" src="{{ root_path }}static/app.js"></script>
 </head>
+
 <body>
     <header>
         <div class="container">
@@ -59,11 +63,11 @@
             </div>
         </div>
     </header>
-    
+
     <main class="container">
         {% block content %}{% endblock %}
     </main>
-    
+
     <footer>
         <div class="container">
             <p style="text-align: center; color: #666; margin-top: 40px; padding: 20px 0;">
@@ -71,11 +75,12 @@
             </p>
         </div>
     </footer>
-    
+
     <!-- Prism.js for syntax highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="{{ root_path }}static/prism-wdl.js"></script>
 </body>
+
 </html>
