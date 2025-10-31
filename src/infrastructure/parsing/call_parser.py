@@ -31,7 +31,7 @@ class CallParser:
 
     def parse_calls(self, workflow: WDL.Tree.Workflow, imports: List[WDLImport]) -> List[WDLCall]:
         """
-        Parse all calls in a workflow.
+        Parse all calls in a workflow, including nested calls in scatter and conditional blocks.
 
         Args:
             workflow: MiniWDL workflow object
@@ -41,17 +41,32 @@ class CallParser:
             List of WDLCall domain objects
         """
         calls = []
+        self._parse_calls_recursive(workflow.body, imports, calls)
+        return calls
 
-        for call in workflow.body:
-            if isinstance(call, WDL.Tree.Call):
+    def _parse_calls_recursive(self, body: List, imports: List[WDLImport], calls: List[WDLCall]) -> None:
+        """
+        Recursively parse calls from workflow body, including nested structures.
+
+        Args:
+            body: List of workflow body elements (calls, scatters, conditionals, etc.)
+            imports: List of imports in the document
+            calls: List to accumulate found calls
+        """
+        for element in body:
+            if isinstance(element, WDL.Tree.Call):
                 try:
-                    wdl_call = self.create_call_object(call, imports)
+                    wdl_call = self.create_call_object(element, imports)
                     calls.append(wdl_call)
                 except ValueError:
                     # Skip invalid calls
                     continue
-
-        return calls
+            elif isinstance(element, WDL.Tree.Scatter):
+                # Recursively parse calls inside scatter blocks
+                self._parse_calls_recursive(element.body, imports, calls)
+            elif isinstance(element, WDL.Tree.Conditional):
+                # Recursively parse calls inside conditional blocks
+                self._parse_calls_recursive(element.body, imports, calls)
 
     def create_call_object(self, call: WDL.Tree.Call, imports: List[WDLImport]) -> WDLCall:
         """
