@@ -126,18 +126,51 @@ class AstMapper:
 
 
     def _parse_description(self, parameter_meta: dict[str, str], name: str) -> Optional[str]:
-        """Parse description for a parameter from parameter_meta."""
-        raw_description = parameter_meta.get(name, None)
+        """
+        Parse description for a parameter from parameter_meta.
+        
+        Supports two formats:
+        1. Simple string: "This is a description"
+        2. Dictionary with description field: {"description": "This is a description", "other": "value"}
+        
+        Args:
+            parameter_meta: Dictionary of parameter metadata
+            name: Parameter name to look up
+            
+        Returns:
+            Description string or None if not found
+        """
+        raw_description = parameter_meta.get(name)
         if not raw_description:
             return None
         
-        try:
-            description = ast.literal_eval(raw_description).get("description", None)
-        except (ValueError, SyntaxError):
-            logger.debug(f"Parameter meta for '{name}' is not valid JSON. Using raw string as description.: {raw_description}")
-            description = raw_description
+        # Try to parse as a dictionary (JSON-like format)
+        description = self._try_parse_as_dict(raw_description)
+        if description:
+            return description
         
-        return description
+        # Fall back to using the raw string as description
+        logger.debug(f"Using raw string as description for parameter '{name}': {raw_description}")
+        return raw_description
+    
+    @staticmethod
+    def _try_parse_as_dict(raw_value: str) -> Optional[str]:
+        """
+        Try to parse a string as a dictionary and extract the 'description' field.
+        
+        Args:
+            raw_value: Raw string value from parameter_meta
+            
+        Returns:
+            Description value if parsing succeeds and 'description' key exists, None otherwise
+        """
+        try:
+            parsed = ast.literal_eval(raw_value)
+            if isinstance(parsed, dict):
+                return parsed.get("description")
+        except (ValueError, SyntaxError, AttributeError):
+            pass
+        return None
 
     def _parse_input(self, inp: WDL.Tree.Decl, parameter_meta: dict[str, str]) -> WDLInput:
         """Parse a WDL input declaration."""
