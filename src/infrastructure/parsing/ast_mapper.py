@@ -3,11 +3,11 @@ AST Mapper - Parsing Adapter
 
 Maps MiniWDL AST objects to domain objects.
 """
-
+import ast
 from pathlib import Path
 from typing import Optional, List, Dict
 import WDL.Tree
-
+import logging
 from src.domain.value_objects import (
     WDLWorkflow,
     WDLTask,
@@ -21,6 +21,9 @@ from src.infrastructure.parsing.docker_extractor import DockerExtractor
 from src.infrastructure.parsing.graph_generator import generate_mermaid_graph
 from src.infrastructure.parsing.call_parser import CallParser
 from src.infrastructure.shared.path_resolver import PathResolver
+
+
+logger = logging.getLogger(__name__)
 
 
 class AstMapper:
@@ -49,10 +52,11 @@ class AstMapper:
         # Parse basic info
         name = workflow.name
         description = self._extract_description(workflow)
+        parameter_meta = self._extract_parameter_meta(workflow)
         meta = self._parse_meta(workflow)
 
         # Parse inputs and outputs
-        inputs = [self._parse_input(inp.value) for inp in workflow.available_inputs]
+        inputs = [self._parse_input(inp.value, parameter_meta) for inp in workflow.available_inputs]
         outputs = [self._parse_output(out) for out in workflow.outputs] if workflow.outputs else []
 
         # Parse calls
@@ -79,10 +83,11 @@ class AstMapper:
         """Map a miniwdl Task object to domain WDLTask."""
         name = task.name
         description = self._extract_description(task)
+        meta = self._extract_parameter_meta(task)
         meta = self._parse_meta(task)
 
         # Parse inputs and outputs
-        inputs = [self._parse_input(inp.value) for inp in task.available_inputs]
+        inputs = [self._parse_input(inp.value, meta) for inp in task.available_inputs]
         outputs = [self._parse_output(out) for out in task.outputs] if task.outputs else []
 
         # Parse command
@@ -119,11 +124,26 @@ class AstMapper:
 
         return imports
 
-    def _parse_input(self, inp: WDL.Tree.Decl) -> WDLInput:
+
+    def _parse_description(self, parameter_meta: dict[str, str], name: str) -> Optional[str]:
+        """Parse description for a parameter from parameter_meta."""
+        raw_description = parameter_meta.get(name, None)
+        if not raw_description:
+            return None
+        
+        try:
+            description = ast.literal_eval(raw_description).get("description", None)
+        except (ValueError, SyntaxError):
+            logger.debug(f"Parameter meta for '{name}' is not valid JSON. Using raw string as description.: {raw_description}")
+            description = raw_description
+        
+        return description
+
+    def _parse_input(self, inp: WDL.Tree.Decl, parameter_meta: dict[str, str]) -> WDLInput:
         """Parse a WDL input declaration."""
         name = inp.name
         wdl_type = self._parse_type(inp.type)
-        description = None
+        description = self._parse_description(parameter_meta, name)
         default_value = None
 
         if inp.expr:
@@ -249,3 +269,16 @@ class AstMapper:
             if "description" in obj.meta:
                 return str(obj.meta["description"])
         return None
+
+    @staticmethod
+    def _extract_parameter_meta(obj) -> dict[str, str]:
+        """Extract parameter_meta from meta section."""
+        parameter_meta = {}
+
+        if hasattr(obj, "parameter_meta"):
+            param_meta_obj = obj.parameter_meta
+            if isinstance(param_meta_obj, dict):
+                for key, value in param_meta_obj.items():
+                    parameter_meta[key] = str(value)
+
+        return parameter_meta
