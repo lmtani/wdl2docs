@@ -23,16 +23,18 @@ class TemplateRenderer:
     Configures and manages Jinja2 environment for rendering HTML templates.
     """
 
-    def __init__(self, templates_dir: Path, root_path: Path):
+    def __init__(self, templates_dir: Path, root_path: Path, title: str = "WDL Atlas"):
         """
         Initialize the renderer.
 
         Args:
             templates_dir: Directory containing Jinja2 templates
             root_path: Project root path for relative path calculations
+            title: Custom title for the documentation site
         """
         self.templates_dir = templates_dir
         self.root_path = root_path
+        self.title = title
 
         # Setup Jinja2 environment
         self.env = Environment(
@@ -44,8 +46,22 @@ class TemplateRenderer:
 
         # Register custom filters
         self._register_filters()
+        
+        # Add global variables
+        self.env.globals['site_title'] = title
+        self.env.globals['custom_logo_filename'] = None
 
         logger.debug(f"Initialized TemplateRenderer with templates from {templates_dir}")
+    
+    def set_custom_logo(self, logo_filename: str) -> None:
+        """
+        Set custom logo filename for templates.
+        
+        Args:
+            logo_filename: Filename of the custom logo in the static directory
+        """
+        self.env.globals['custom_logo_filename'] = logo_filename
+        logger.debug(f"Custom logo set to: {logo_filename}")
 
     def _register_filters(self) -> None:
         """Register custom Jinja2 filters."""

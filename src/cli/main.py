@@ -54,8 +54,23 @@ def cli():
     help="Directory names to treat as external dependencies.",
     show_default=True,
 )
+@click.option(
+    "--title",
+    "-t",
+    type=str,
+    default="WDL Atlas",
+    help="Custom title for the documentation site.",
+    show_default=True,
+)
+@click.option(
+    "--logo",
+    "-l",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="Path to custom logo image file (PNG, SVG, etc.). Will be copied to static folder.",
+)
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging.")
-def generate(root_path, output, exclude, external_dirs, verbose):
+def generate(root_path, output, exclude, external_dirs, title, logo, verbose):
     """Generate HTML documentation for WDL files in ROOT_PATH."""
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -68,13 +83,22 @@ def generate(root_path, output, exclude, external_dirs, verbose):
 
     logger.info(f"📂 Scanning WDL files in: {root_path}")
     logger.info(f"📝 Output directory: {output_dir}")
+    if title != "WDL Atlas":
+        logger.info(f"📌 Custom title: {title}")
+    if logo:
+        logger.info(f"🖼️  Custom logo: {logo}")
 
     # Initialize infrastructure dependencies
     repository = DocumentRepository(root_path, list(exclude), list(external_dirs))
     parser = MiniwdlParser(root_path, output_dir)
 
-    # Initialize DocumentationGenerator
-    documentation_generator = DocumentationGenerator(output_dir, root_path)
+    # Initialize DocumentationGenerator with custom settings
+    documentation_generator = DocumentationGenerator(
+        output_dir=output_dir, 
+        root_path=root_path,
+        title=title,
+        logo_path=logo
+    )
 
     # Execute use case
     use_case = GenerateDocumentationUseCase(

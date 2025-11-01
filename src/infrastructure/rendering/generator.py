@@ -8,7 +8,7 @@ Delegates to infrastructure components for rendering and file operations.
 import logging
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from src.domain.value_objects import WDLDocument
 from src.domain.errors import ParseError
@@ -26,20 +26,31 @@ class DocumentationGenerator:
     HTML documentation site.
     """
 
-    def __init__(self, output_dir: Path, root_path: Path):
+    def __init__(
+        self, 
+        output_dir: Path, 
+        root_path: Path,
+        title: str = "WDL Atlas",
+        logo_path: Optional[Path] = None
+    ):
         """
         Initialize the generator.
 
         Args:
             output_dir: Directory where HTML will be generated
             root_path: Root path of the project (for relative paths)
+            title: Custom title for the documentation site
+            logo_path: Optional path to custom logo image file
         """
         self.output_dir = output_dir
         self.root_path = root_path
+        self.title = title
+        self.logo_path = logo_path
+        self.custom_logo_filename = None
 
         # Initialize infrastructure components
         self._templates_dir = Path(__file__).parent / "templates"
-        self.renderer = TemplateRenderer(self._templates_dir, root_path)
+        self.renderer = TemplateRenderer(self._templates_dir, root_path, title=title)
         self.html_generator = HtmlGenerator(output_dir, self.renderer)
         self.static_dir = "static"
         self.source_static_dir = self._templates_dir / self.static_dir
@@ -49,12 +60,18 @@ class DocumentationGenerator:
         Generate HTML documentation for all WDL documents.
         """
         try:
+            # Copy static assets first (including custom logo if provided)
+            self.copy_static_assets()
+            
+            # Update renderer with custom logo filename if available
+            if self.custom_logo_filename:
+                self.renderer.set_custom_logo(self.custom_logo_filename)
+            
             for doc in documents:
                 self.html_generator.generate_document_page(doc, documents)
 
             self.html_generator.generate_index(documents, parse_errors)
             self.html_generator.generate_docker_images_page(documents)
-            self.copy_static_assets()
             return True
         except Exception as e:
             logger.error(f"Documentation generation failed: {e}")
@@ -72,6 +89,15 @@ class DocumentationGenerator:
             # Copy entire static directory
             shutil.copytree(self.source_static_dir, target_static_dir)
             logger.info(f"Static assets copied from {self.source_static_dir} to {target_static_dir}")
+            
+            # Copy custom logo if provided
+            if self.logo_path and self.logo_path.exists():
+                logo_extension = self.logo_path.suffix
+                self.custom_logo_filename = f"custom-logo{logo_extension}"
+                target_logo = target_static_dir / self.custom_logo_filename
+                shutil.copy2(self.logo_path, target_logo)
+                logger.info(f"Custom logo copied to {target_logo}")
+            
             return
 
         raise FileNotFoundError(f"Could not find static directory at {self.source_static_dir}")

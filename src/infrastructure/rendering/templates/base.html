@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>
-            {% block title %}WDL Atlas{% endblock %}
+            {% block title %}{{ site_title }}{% endblock %}
         </title>
         <link rel="icon" type="image/png" href="{{ root_path }}static/logo.png">
         <link rel="stylesheet" href="{{ root_path }}static/style.css">
@@ -53,10 +53,14 @@
                 <div class="header-content">
                     <div class="header-title">
                         <a href="{{ root_path }}index.html" style="display: flex; align-items: center; text-decoration: none;">
-                            <img src="{{ root_path }}static/logo.png" alt="WDL Logo" class="wdl-logo">
+                            {% if custom_logo_filename %}
+                                <img src="{{ root_path }}static/{{ custom_logo_filename }}" alt="{{ site_title }} Logo" class="wdl-logo">
+                            {% else %}
+                                <img src="{{ root_path }}static/logo.png" alt="WDL Logo" class="wdl-logo">
+                            {% endif %}
                         </a>
                         <h1>
-                            {% block header %}WDL Atlas{% endblock %}
+                            {% block header %}{{ site_title }}{% endblock %}
                         </h1>
                     </div>
                     <nav class="nav">
