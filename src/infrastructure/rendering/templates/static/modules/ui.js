@@ -59,34 +59,59 @@ export class UIManager {
         if (!header) return;
         
         let isCompact = false;
+        let lastScroll = 0;
         let lastUpdateTime = 0;
+        let pendingUpdate = null;
         
         // Hysteresis thresholds to prevent flickering
-        const COMPACT_THRESHOLD = 150;      // Scroll down to compact
-        const EXPAND_THRESHOLD = 50;        // Scroll up to expand
-        const MIN_UPDATE_INTERVAL = 100;    // Min ms between changes
+        const COMPACT_THRESHOLD = 200;      // Scroll down to compact
+        const EXPAND_THRESHOLD = 80;        // Scroll up to expand
+        const MIN_UPDATE_INTERVAL = 200;    // Min ms between changes
+        const DEBOUNCE_DELAY = 50;          // Debounce delay for scroll events
         
-        const updateHeader = () => {
-            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        const applyState = (compact) => {
             const now = Date.now();
             
-            // Prevent rapid state changes
+            // Enforce minimum time between state changes
             if (now - lastUpdateTime < MIN_UPDATE_INTERVAL) {
                 return;
             }
             
-            // Use hysteresis
-            if (!isCompact && currentScroll > COMPACT_THRESHOLD) {
-                header.classList.add('compact');
-                html.classList.add('header-compact');
-                isCompact = true;
-                lastUpdateTime = now;
-            } else if (isCompact && currentScroll < EXPAND_THRESHOLD) {
-                header.classList.remove('compact');
-                html.classList.remove('header-compact');
-                isCompact = false;
+            if (compact !== isCompact) {
+                if (compact) {
+                    header.classList.add('compact');
+                    html.classList.add('header-compact');
+                } else {
+                    header.classList.remove('compact');
+                    html.classList.remove('header-compact');
+                }
+                isCompact = compact;
                 lastUpdateTime = now;
             }
+        };
+        
+        const updateHeader = () => {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Clear any pending updates
+            if (pendingUpdate) {
+                clearTimeout(pendingUpdate);
+            }
+            
+            // Debounce the update
+            pendingUpdate = setTimeout(() => {
+                // Determine desired state based on scroll position
+                let shouldBeCompact = isCompact;
+                
+                if (!isCompact && currentScroll > COMPACT_THRESHOLD) {
+                    shouldBeCompact = true;
+                } else if (isCompact && currentScroll < EXPAND_THRESHOLD) {
+                    shouldBeCompact = false;
+                }
+                
+                applyState(shouldBeCompact);
+                lastScroll = currentScroll;
+            }, DEBOUNCE_DELAY);
         };
         
         // Throttle scroll events with requestAnimationFrame
