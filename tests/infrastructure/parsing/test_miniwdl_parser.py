@@ -35,21 +35,6 @@ def should_parse_simple_workflow_successfully(temp_dir, create_wdl_file, sample_
     assert document.tasks[0].name == "SayHello"
 
 
-def should_extract_workflow_metadata(temp_dir, create_wdl_file, sample_wdl_content):
-    """Test extraction of workflow metadata."""
-    # Arrange
-    wdl_file = create_wdl_file("workflow.wdl", sample_wdl_content)
-    parser = MiniwdlParser(base_path=temp_dir, output_dir=temp_dir / "output")
-
-    # Act
-    document = parser.parse_document(wdl_file)
-
-    # Assert
-    workflow = document.workflow
-    assert workflow.description == "A simple hello world workflow"
-    assert "description" in workflow.meta
-    assert workflow.meta["description"] == "A simple hello world workflow"
-
 
 def should_parse_workflow_inputs_with_optional_types(temp_dir, create_wdl_file, sample_wdl_content):
     """Test parsing workflow inputs including optional types."""

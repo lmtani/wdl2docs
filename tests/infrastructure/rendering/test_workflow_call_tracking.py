@@ -70,7 +70,6 @@ def test_get_workflow_call_info_returns_none_when_workflow_not_called(html_gener
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -97,7 +96,6 @@ def test_get_workflow_call_info_tracks_single_caller(html_generator, temp_dir):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -120,7 +118,6 @@ def test_get_workflow_call_info_tracks_single_caller(html_generator, temp_dir):
                     call_type="workflow",
                 )
             ],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -153,7 +150,6 @@ def test_get_workflow_call_info_tracks_multiple_callers(html_generator, temp_dir
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -176,7 +172,6 @@ def test_get_workflow_call_info_tracks_multiple_callers(html_generator, temp_dir
                     call_type="workflow",
                 )
             ],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -199,7 +194,6 @@ def test_get_workflow_call_info_tracks_multiple_callers(html_generator, temp_dir
                     call_type="workflow",
                 )
             ],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -233,7 +227,6 @@ def test_get_workflow_call_info_ignores_task_calls(html_generator, temp_dir):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -256,7 +249,6 @@ def test_get_workflow_call_info_ignores_task_calls(html_generator, temp_dir):
                     call_type="task",  # This is a task call, not a workflow call
                 )
             ],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -285,7 +277,6 @@ def test_generate_document_page_includes_workflow_call_info(html_generator, temp
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
         ),
         tasks=[],
@@ -308,7 +299,6 @@ def test_generate_document_page_includes_workflow_call_info(html_generator, temp
                     call_type="workflow",
                 )
             ],
-            meta={},
             docker_images=[],
         ),
         tasks=[],

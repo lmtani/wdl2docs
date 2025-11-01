@@ -53,7 +53,6 @@ class AstMapper:
         name = workflow.name
         description = self._extract_description(workflow)
         parameter_meta = self._extract_parameter_meta(workflow)
-        meta = self._parse_meta(workflow)
 
         # Parse inputs and outputs
         inputs = [self._parse_input(inp.value, parameter_meta) for inp in workflow.available_inputs]
@@ -74,7 +73,6 @@ class AstMapper:
             inputs=inputs,
             outputs=outputs,
             calls=calls,
-            meta=meta,
             docker_images=docker_images,
             mermaid_graph=mermaid_graph,
         )
@@ -84,7 +82,6 @@ class AstMapper:
         name = task.name
         description = self._extract_description(task)
         meta = self._extract_parameter_meta(task)
-        meta = self._parse_meta(task)
 
         # Parse inputs and outputs
         inputs = [self._parse_input(inp.value, meta) for inp in task.available_inputs]
@@ -103,7 +100,6 @@ class AstMapper:
             outputs=outputs,
             command=command,
             runtime=runtime,
-            meta=meta,
         )
 
     @staticmethod
@@ -283,17 +279,6 @@ class AstMapper:
                     runtime[key] = "unknown"
 
         return runtime
-
-    @staticmethod
-    def _parse_meta(obj) -> Dict[str, str]:
-        """Parse meta section."""
-        meta = {}
-
-        if hasattr(obj, "meta") and obj.meta:
-            for key, value in obj.meta.items():
-                meta[key] = str(value)
-
-        return meta
 
     @staticmethod
     def _extract_description(obj) -> Optional[str]:

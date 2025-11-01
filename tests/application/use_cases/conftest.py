@@ -253,7 +253,6 @@ def sample_wdl_document(temp_dir):
                 )
             ],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="",
         ),
@@ -279,7 +278,6 @@ def sample_wdl_document_with_import(temp_dir):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="",
         ),
@@ -313,7 +311,6 @@ def sample_external_document(temp_dir):
                 outputs=[],
                 command=WDLCommand(raw_command="echo test", formatted_command="echo test"),
                 runtime={},
-                meta={},
             )
         ],
         imports=[],

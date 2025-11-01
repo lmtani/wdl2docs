@@ -63,7 +63,6 @@ def sample_wdl_document(temp_dir):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="graph TD;\nA-->B;",
         ),
@@ -89,7 +88,6 @@ def sample_wdl_document_with_tasks(temp_dir):
                 outputs=[],
                 command=WDLCommand(raw_command="echo test", formatted_command="echo test"),
                 runtime={},
-                meta={},
             )
         ],
         imports=[],
@@ -151,7 +149,6 @@ def should_create_output_directory_structure(html_generator, temp_dir):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="",
         ),
@@ -182,7 +179,6 @@ def should_not_generate_graph_page_when_workflow_has_no_graph(html_generator, te
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="",  # Empty graph
         ),
@@ -264,7 +260,6 @@ def should_organize_documents_by_type_in_index_context(html_generator):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="",
         ),
@@ -286,7 +281,6 @@ def should_organize_documents_by_type_in_index_context(html_generator):
                 outputs=[],
                 command=WDLCommand(raw_command="echo test", formatted_command="echo test"),
                 runtime={},
-                meta={},
             )
         ],
         imports=[],
@@ -303,7 +297,6 @@ def should_organize_documents_by_type_in_index_context(html_generator):
             inputs=[],
             outputs=[],
             calls=[],
-            meta={},
             docker_images=[],
             mermaid_graph="",
         ),
@@ -315,7 +308,6 @@ def should_organize_documents_by_type_in_index_context(html_generator):
                 outputs=[],
                 command=WDLCommand(raw_command="echo test", formatted_command="echo test"),
                 runtime={},
-                meta={},
             )
         ],
         imports=[],

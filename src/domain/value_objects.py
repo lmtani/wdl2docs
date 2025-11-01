@@ -91,7 +91,6 @@ class WDLTask:
     outputs: List[WDLOutput] = field(default_factory=list)
     command: Optional[WDLCommand] = None
     runtime: Dict[str, str] = field(default_factory=dict)
-    meta: Dict[str, str] = field(default_factory=dict)
 
     @property
     def has_description(self) -> bool:
@@ -155,7 +154,6 @@ class WDLWorkflow:
     inputs: List[WDLInput] = field(default_factory=list)
     outputs: List[WDLOutput] = field(default_factory=list)
     calls: List[WDLCall] = field(default_factory=list)
-    meta: Dict[str, str] = field(default_factory=dict)
     docker_images: List[WDLDockerImage] = field(default_factory=list)
     mermaid_graph: Optional[str] = None  # Mermaid diagram representation
 
