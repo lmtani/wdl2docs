@@ -27,13 +27,13 @@ mkdir output
 docker run  --user $(id -u):$(id -g) --rm \
             -v /path/to/wdl-project:/data \
             -v $(pwd)/output:/output \
-            taniguti/wdlatlas:0.1.0 generate /data -o /output
+            taniguti/wdlatlas:0.1.1 generate /data -o /output
 
 # Generate graph
 docker run  --user $(id -u):$(id -g) --rm \
             -v /path/to/wdl-project:/data \
             -v $(pwd)/output:/output \
-            taniguti/wdlatlas:0.1.0 graph /data/workflow.wdl -o /output/graph.md
+            taniguti/wdlatlas:0.1.1 graph /data/workflow.wdl -o /output/graph.md
 ```
 
 ## Usage
