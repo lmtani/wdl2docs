@@ -53,6 +53,11 @@ class AstMapper:
         name = workflow.name
         description = self._extract_description(workflow)
         parameter_meta = self._extract_parameter_meta(workflow)
+        meta = self._parse_meta(workflow)
+        
+        # Extract author and email from meta
+        author = meta.get('author')
+        email = meta.get('email')
 
         # Parse inputs and outputs
         inputs = [self._parse_input(inp.value, parameter_meta) for inp in workflow.available_inputs]
@@ -75,16 +80,24 @@ class AstMapper:
             calls=calls,
             docker_images=docker_images,
             mermaid_graph=mermaid_graph,
+            meta=meta,
+            author=author,
+            email=email,
         )
 
     def map_task(self, task: WDL.Tree.Task) -> WDLTask:
         """Map a miniwdl Task object to domain WDLTask."""
         name = task.name
         description = self._extract_description(task)
-        meta = self._extract_parameter_meta(task)
+        parameter_meta = self._extract_parameter_meta(task)
+        meta = self._parse_meta(task)
+        
+        # Extract author and email from meta
+        author = meta.get('author')
+        email = meta.get('email')
 
         # Parse inputs and outputs
-        inputs = [self._parse_input(inp.value, meta) for inp in task.available_inputs]
+        inputs = [self._parse_input(inp.value, parameter_meta) for inp in task.available_inputs]
         outputs = [self._parse_output(out) for out in task.outputs] if task.outputs else []
 
         # Parse command
@@ -100,6 +113,9 @@ class AstMapper:
             outputs=outputs,
             command=command,
             runtime=runtime,
+            meta=meta,
+            author=author,
+            email=email,
         )
 
     @staticmethod
@@ -287,6 +303,17 @@ class AstMapper:
             if "description" in obj.meta:
                 return str(obj.meta["description"])
         return None
+    
+    @staticmethod
+    def _parse_meta(obj) -> Dict[str, str]:
+        """Parse meta section and return all metadata as dict."""
+        meta = {}
+
+        if hasattr(obj, "meta") and obj.meta:
+            for key, value in obj.meta.items():
+                meta[key] = str(value)
+
+        return meta
 
     @staticmethod
     def _extract_parameter_meta(obj) -> dict[str, str]:

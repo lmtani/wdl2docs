@@ -15,6 +15,39 @@
         {% endcall %}
     </div>
 {%- endmacro %}
+
+{# Author and email info banner #}
+{% macro author_info(author=none, email=none) %}
+    {% if author or email %}
+    <div style="margin: 12px 0;
+                padding: 10px 14px;
+                background: rgba(88, 166, 255, 0.08);
+                border-radius: 6px;
+                border-left: 3px solid #58a6ff;
+                font-size: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            {% if author %}
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span style="color: #c9d1d9;"><strong style="color: #58a6ff;">Author:</strong> {{ author }}</span>
+            </div>
+            {% endif %}
+            {% if email %}
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+                <a href="mailto:{{ email }}" style="color: #58a6ff; text-decoration: none;">{{ email }}</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{%- endmacro %}
 {# Tasks section header with action button #}
 {% macro tasks_section_header(has_source=false) %}
     <div style="display: flex;
@@ -174,6 +207,7 @@
     <div class="card" id="task-{{ task.name }}" style="margin-bottom: 20px;">
         <h3>{{ task_badge() }} {{ task.name }}</h3>
         {% if task.description %}<p class="description">{{ task.description }}</p>{% endif %}
+        {{ author_info(task.author, task.email) }}
         {% if task.has_inputs %}
             <h4>Inputs</h4>
             {{ inputs_table(task.inputs) }}

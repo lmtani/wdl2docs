@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "macros/badges.html" import workflow_badge, task_badge, file_badge %}
 {% from "macros/tables.html" import inputs_table, outputs_table, imports_table, document_info_table %}
-{% from "components/document.html" import workflow_section_header, tasks_section_header, subworkflow_usage_banner, call_block, docker_images_grid, task_card %}
+{% from "components/document.html" import workflow_section_header, tasks_section_header, author_info, subworkflow_usage_banner, call_block, docker_images_grid, task_card %}
 {% from "components/modals.html" import graph_modal, source_modal %}
 {% block title %}{{ doc.name }} - WDL Atlas{% endblock %}
 {% block header %}
@@ -68,6 +68,7 @@
         <div class="card section" id="workflow">
             {{ workflow_section_header(doc.workflow.name, doc.workflow.has_graph, doc.source_code) }}
             {% if doc.workflow.description %}<p class="description">{{ doc.workflow.description }}</p>{% endif %}
+            {{ author_info(doc.workflow.author, doc.workflow.email) }}
             {% if workflow_call_info %}{{ subworkflow_usage_banner(workflow_call_info, doc.relative_path) }}{% endif %}
             {% if doc.workflow.has_inputs %}
                 <h3 id="inputs">Inputs</h3>

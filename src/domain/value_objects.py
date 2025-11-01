@@ -91,10 +91,21 @@ class WDLTask:
     outputs: List[WDLOutput] = field(default_factory=list)
     command: Optional[WDLCommand] = None
     runtime: Dict[str, str] = field(default_factory=dict)
+    meta: Dict[str, str] = field(default_factory=dict)
+    author: Optional[str] = None
+    email: Optional[str] = None
 
     @property
     def has_description(self) -> bool:
         return self.description is not None
+    
+    @property
+    def has_author(self) -> bool:
+        return self.author is not None
+    
+    @property
+    def has_email(self) -> bool:
+        return self.email is not None
 
     @property
     def has_inputs(self) -> bool:
@@ -156,10 +167,21 @@ class WDLWorkflow:
     calls: List[WDLCall] = field(default_factory=list)
     docker_images: List[WDLDockerImage] = field(default_factory=list)
     mermaid_graph: Optional[str] = None  # Mermaid diagram representation
+    meta: Dict[str, str] = field(default_factory=dict)
+    author: Optional[str] = None
+    email: Optional[str] = None
 
     @property
     def has_description(self) -> bool:
         return self.description is not None
+    
+    @property
+    def has_author(self) -> bool:
+        return self.author is not None
+    
+    @property
+    def has_email(self) -> bool:
+        return self.email is not None
 
     @property
     def has_inputs(self) -> bool:
