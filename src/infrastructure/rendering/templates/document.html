@@ -31,7 +31,6 @@
             {% endif %}
             {{ doc.name }}
         </h2>
-        {% if doc.description %}<p class="description">{{ doc.description }}</p>{% endif %}
         {{ document_info_table(doc) }}
         
         {% if doc.has_tasks %}
