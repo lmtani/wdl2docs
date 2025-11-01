@@ -1570,15 +1570,24 @@ strong {
 .graph-modal .mermaid .node ellipse,
 .graph-modal .mermaid .node polygon {
     filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
-    transition: all 0.2s ease;
+    transition: filter 0.2s ease, stroke-width 0.2s ease;
 }
 
 .graph-modal .mermaid .node:hover rect,
 .graph-modal .mermaid .node:hover circle,
-.graph-modal .mermaid .node:hover ellipse,
-.graph-modal .mermaid .node:hover polygon {
+.graph-modal .mermaid .node:hover ellipse {
     filter: drop-shadow(0 6px 12px rgba(88, 166, 255, 0.5));
-    transform: scale(1.03);
+    cursor: pointer;
+}
+
+/* Special handling for polygons (diamonds) - no filter change to avoid displacement */
+.graph-modal .mermaid .node polygon {
+    stroke-width: 2px;
+}
+
+.graph-modal .mermaid .node:hover polygon {
+    stroke-width: 3px;
+    stroke: #58a6ff !important;
     cursor: pointer;
 }
 
